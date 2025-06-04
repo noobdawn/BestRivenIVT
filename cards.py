@@ -20,6 +20,18 @@ RIFILE_CARDS = [
     C("高温枪管", MOD(P.Fire, 75)),
     C("弹孔注射", MOD(P.Poison, 75)),
     C("致密打击", MOD(P.Physics, 50)),
+    # 魈鬼暂时忽略
 ]
 for card in RIFILE_CARDS:
     card.weaponType = WeaponType.Rifle
+
+def getRifleCards(name : str) -> CardCommon:
+    """
+    根据卡牌名称获取对应的卡牌对象
+    :param name: 卡牌名称
+    :return: 对应的卡牌对象
+    """
+    for card in RIFILE_CARDS:
+        if card.name == name:
+            return card
+    raise ValueError(f"Unknown rifle card name: {name}")
