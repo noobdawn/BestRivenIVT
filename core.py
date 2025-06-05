@@ -1,6 +1,24 @@
 from abc import ABC, abstractmethod
 from enum import Enum, unique
+import numpy as np
 import copy
+from env import env
+
+# 128个介于0~1之间的随机数
+_SEED = 114514.1919810
+_RANDOM_NUMBERS = []
+for i in range(128):
+	_SEED = (_SEED * 16807) % 2147483647
+	_RANDOM_NUMBERS.append(_SEED / 2147483647.0)
+# 获取随机数
+_RANDOM_INDEX = 0
+def rand():
+	global _RANDOM_INDEX
+	if _RANDOM_INDEX >= len(_RANDOM_NUMBERS):
+		_RANDOM_INDEX = 0
+	value = _RANDOM_NUMBERS[_RANDOM_INDEX]
+	_RANDOM_INDEX += 1
+	return value
 
 @unique
 class CardSet(Enum):
@@ -24,12 +42,12 @@ class PropertyType(Enum):
 	Fire = 3
 	Poison = 4
 	# 复合伤害类型
-	Cracking = 15
-	Radiation = 16
-	Gas = 17
-	Magnetic = 18
-	Ether = 19
-	Virus = 20
+	Cracking = 5
+	Radiation = 6
+	Gas = 7
+	Magnetic = 8
+	Ether = 9
+	Virus = 10
 	# 暴击
 	CriticalChance = 100
 	CriticalDamage = 101
@@ -57,15 +75,20 @@ class PropertyType(Enum):
 	def isRanged(self):
 		return self.value > 1000 and self.value < 2000
 	
-	# 是否是可复合的基础伤害类属性
 	def isBaseElementDamage(self):
+		'''判断是否是基础元素伤害'''
+		# 基础元素伤害是指冰冻、赛能、热波、创生
 		return self.value > 0 and self.value <= 4
 	
 	def isElementDamage(self):
-		return self.value > 0 and self.value < 21
+		'''判断是否是元素伤害'''
+		# 元素伤害是指基础元素伤害和复合元素伤害
+		return self.value > 0 and self.value <= 10
 	
 	def isDamage(self):
-		return self.value <= 20
+		'''判断是否是伤害类型'''
+		# 伤害类型是指动能伤害和元素伤害
+		return self.value <= 10
 	
 	def toString(self):
 		if self in PropertyTypeToString:
@@ -98,22 +121,59 @@ PropertyTypeToString = {
 	PropertyType.PenetrationValue: "穿甲值",
 	PropertyType.AllDamage: "武器伤害"
 }
+
+# 伤害的组合体，实际上是一个由11个float组成的Numpy数组
+class DamageCollection:
+	def __init__(self, physics=0.0, cold=0.0, electric=0.0, fire=0.0, poison=0.0,
+				 cracking=0.0, radiation=0.0, gas=0.0, magnetic=0.0, ether=0.0, virus=0.0):
+		self.np_damage = np.array([
+			physics, cold, electric, fire, poison,
+			cracking, radiation, gas, magnetic, ether, virus
+		], dtype=np.float32)
+
+	def sum(self):
+		'''返回所有伤害的总和'''
+		return self.np_damage.sum()
+
+	@classmethod
+	def createDamage(cls, array : list):
+		if len(array) != 11:
+			raise ValueError("Array must have exactly 11 elements")
+		return cls(*array)
 	
-Adjustment = [
-	[1,		1,		1,		1], 	# Physics
-	[1.25,	0.85,	1,		1], 	# Cold
-	[1,		1,		0.75,	1.25], 	# Electric
-	[0.85,	1.25,	1,		1], 	# Fire
-	[1,		1,		1.25,	0.75], 	# Poison
-	[1.5,	0.5,	1,		1.5], 	# Cracking
-	[0.5,	1.5,	1,		1.75], 	# Radiation
-	[1,		1,		1.75,	0.5], 	# Gas
-	[1,		1.75,	0.5,	1.75], 	# Magnetic
-	[1.75,	1,		0.5,	1], 	# Ether
-	[0.5,	1,		1.5,	1], 	# Virus
-]
-def GetDamageAdjustment(propertyType: PropertyType, enemyMaterial: EnemyMaterial):
-	return Adjustment[propertyType.value][enemyMaterial.value]
+	# 重载运算符
+	# 核心运算逻辑
+	def _element_wise_op(self, other, op):
+		if isinstance(other, DamageCollection):
+			new_array = op(self.np_damage, other.np_damage)
+		elif isinstance(other, (int, float)):
+			new_array = op(self.np_damage, other)
+		else:
+			return NotImplemented
+		return DamageCollection(*new_array.tolist())
+
+	# 运算符重载
+	def __add__(self, other):
+		return self._element_wise_op(other, np.add)
+	
+	def __sub__(self, other):
+		return self._element_wise_op(other, np.subtract)
+	
+	def __mul__(self, other):
+		return self._element_wise_op(other, np.multiply)
+	
+	def __truediv__(self, other):
+		return self._element_wise_op(other, np.divide)
+	
+	# 反向运算符（处理标量在左侧的情况）
+	__radd__ = __add__
+	__rmul__ = __mul__
+	
+	def __rsub__(self, other):
+		return DamageCollection(*other).__sub__(self)
+	
+	def __rtruediv__(self, other):
+		return DamageCollection(*other).__truediv__(self)
 
 @unique
 class WeaponType(Enum):
@@ -155,7 +215,6 @@ class Property:
 	def createCardProperty(cls, propertyType: PropertyType, addon: float = 0.0):
 		return cls(propertyType, 0.0, addon, from_mod=True)
 
-
 class PropertySnapshot:
 	def __init__(self, properties):
 		self.datas = {}
@@ -163,21 +222,58 @@ class PropertySnapshot:
 			self.datas[propertyType] = Property(propertyType)
 		for property in properties:
 			self.datas[property.propertyType].add(property)
+		self.damageSnapshot = None
+		self.update([])
 
 	def __deepcopy__(self, memo):
 		new_snapshot = PropertySnapshot([])
 		for propertyType, property in self.datas.items():
 			new_snapshot.datas[propertyType] = copy.deepcopy(property, memo)
+		new_snapshot.update([])  # 确保快照是最新的
 		return new_snapshot
 	
 	# 各伤害合并的面板总伤害
 	def getTotalDamage(self):
-		totalDamage = 0.0
-		for propertyType, property in self.datas.items():
-			if propertyType.isDamage():
-				totalDamage += property.get()
-		return totalDamage
+		if self.damageSnapshot is None:
+			self.damageSnapshot = DamageCollection.createDamage([
+				self.datas[PropertyType.Physics].get(),
+				self.datas[PropertyType.Cold].get(),
+				self.datas[PropertyType.Electric].get(),
+				self.datas[PropertyType.Fire].get(),
+				self.datas[PropertyType.Poison].get(),
+				self.datas[PropertyType.Cracking].get(),
+				self.datas[PropertyType.Radiation].get(),
+				self.datas[PropertyType.Gas].get(),
+				self.datas[PropertyType.Magnetic].get(),
+				self.datas[PropertyType.Ether].get(),
+				self.datas[PropertyType.Virus].get()
+			])
+		return self.damageSnapshot.np_damage.sum()
 	
+	# 获取暴击率
+	def getCriticalChance(self):
+		criticalChance = self.datas[PropertyType.CriticalChance].get()
+		return criticalChance
+	
+	# 获取暴击伤害
+	def getCriticalDamage(self):
+		criticalDamage = self.datas[PropertyType.CriticalDamage].get()
+		return criticalDamage
+	
+	# 获取射速
+	def getAttackSpeed(self):
+		attackSpeed = self.datas[PropertyType.AttackSpeed].get()
+		return attackSpeed
+
+	# 获取多重
+	def getMultiStrike(self):
+		multiStrike = self.datas[PropertyType.MultiStrike].get()
+		return multiStrike
+	
+	# 造成一次伤害
+	def MakeDamage(self) -> DamageCollection:
+		return self.damageSnapshot
+
 	def update(self, propertiesArray):
 		baseDamage = self.getTotalDamage()
 		# 先计算非元素伤害的属性
@@ -353,23 +449,72 @@ class PropertySnapshot:
 			# 如果没有可复合的元素伤害，直接添加到FinalDamageArray
 			FinalDamageArray.append(copy.deepcopy(elementDamageArray[i]))
 		
-		# 将FinalDamageArray中的元素伤害进行AllDamage的加成
-		for property in FinalDamageArray:
-			property.value = property.value * (1 + self.datas[PropertyType.AllDamage].addon / 100.0)
+		# 别忘了将那些addon还有值的属性也都计算一次，比如……动能
+		for propertyType in PropertyType:
+			if propertyType.isDamage() and self.datas[propertyType].addon != 0:
+				self.datas[propertyType].value = self.datas[propertyType].addon * baseDamage / 100.0
+				self.datas[propertyType].addon = 0.0
 
-		# 最后将FinalDamageArray中的元素伤害添加到快照中
+		# 将FinalDamageArray中的元素伤害添加到快照中
 		for property in FinalDamageArray:
 			if property.propertyType.isElementDamage():
 				self.datas[property.propertyType].add(property, ignore_type_check=True)
 			else:
 				raise ValueError("Invalid property type for element damage")
 
+		# 最后将对所有伤害进行AllDamage的加成
+		allDamageAddon = self.datas[PropertyType.AllDamage].addon / 100.0
+		for propertyType in PropertyType:
+			if propertyType.isDamage():
+				self.datas[propertyType].value *= (1 + allDamageAddon)
+				self.datas[propertyType].addon = 0.0			
+			
+		# 更新伤害快照
+		self.damageSnapshot = DamageCollection.createDamage([
+			self.datas[PropertyType.Physics].get(),
+			self.datas[PropertyType.Cold].get(),
+			self.datas[PropertyType.Electric].get(),
+			self.datas[PropertyType.Fire].get(),
+			self.datas[PropertyType.Poison].get(),
+			self.datas[PropertyType.Cracking].get(),
+			self.datas[PropertyType.Radiation].get(),
+			self.datas[PropertyType.Gas].get(),
+			self.datas[PropertyType.Magnetic].get(),
+			self.datas[PropertyType.Ether].get(),
+			self.datas[PropertyType.Virus].get()
+		])
 
-	def update_ghost(self, propertiesArray):
-		# 魈鬼系列应用另一套伤害公式
-		# 目前先不实现
-		pass
-
+	def update_ghost(self, propertiesArray : list, ghostSetNum: int):
+		'''
+		魈鬼系列应用另一套伤害公式
+		:param ghostSetNum: 武器里魈鬼系列套装数量
+		'''
+		# 魈鬼系列应用另一套伤害公式，不过先要计算出未转化为动能伤害之前的伤害
+		self.update(propertiesArray)
+		ghostNum = ghostSetNum + env.SetNum[CardSet.Ghost.value]
+		totalDamage = self.getTotalDamage()
+		physicsDamage = self.datas[PropertyType.Physics].get()
+		convertedPhysicsDamage = (totalDamage - physicsDamage) * ghostNum + physicsDamage
+		# 清空伤害属性
+		for propertyType in PropertyType:
+			if propertyType.isElementDamage():
+				self.datas[propertyType].clear()
+		self.datas[PropertyType.Physics].addon = 0.0
+		self.datas[PropertyType.Physics].value = convertedPhysicsDamage
+		# 更新伤害快照
+		self.damageSnapshot = DamageCollection.createDamage([
+			self.datas[PropertyType.Physics].get(),
+			self.datas[PropertyType.Cold].get(),
+			self.datas[PropertyType.Electric].get(),
+			self.datas[PropertyType.Fire].get(),
+			self.datas[PropertyType.Poison].get(),
+			self.datas[PropertyType.Cracking].get(),
+			self.datas[PropertyType.Radiation].get(),
+			self.datas[PropertyType.Gas].get(),
+			self.datas[PropertyType.Magnetic].get(),
+			self.datas[PropertyType.Ether].get(),
+			self.datas[PropertyType.Virus].get()
+		])
 
 # 所有卡牌的基类
 class CardBase:
@@ -386,12 +531,12 @@ class CardCommon(CardBase):
 	def __init__(self, name, property: Property, weaponType: WeaponType = None, cardSet: CardSet = CardSet.Unset):
 		super().__init__(name, weaponType)
 		self.property = property
-		self.cardSet = CardSet
+		self.cardSet = cardSet
 
 	def getProperties(self):
 		return [self.property]
 
-class CardRaven(CardBase):
+class CardRiven(CardBase):
 	# 紫卡，可拥有多条属性
 	def __init__(self, name, properties : list, WeaponType: WeaponType = None):
 		super().__init__(name, WeaponType)
@@ -402,17 +547,24 @@ class CardRaven(CardBase):
 
 # 所有武器的基类
 class WeaponBase:
-	def __init__(self, name, baseProperties : PropertySnapshot):
+	def __init__(self, name, baseProperties : PropertySnapshot, weaponType : WeaponType = WeaponType.Rifle, basename=None, isPrime=False):
 		self.name = name
 		self.baseProperties = baseProperties
 		self.currentProperties = None
 		self.cards = [None, None, None, None, None, None, None, None]  # 最多8张卡牌
+		self._dirty = True  # 是否需要更新当前属性
+		if basename is None:
+			self.basename = name
+		else:
+			self.basename = basename
+		self.isPrime = isPrime
 
 	# 安装卡牌
 	def setCardAtIndex(self, index, card : CardBase):
 		if index < 0 or index >= 8:
 			raise IndexError("Index out of range")
 		self.cards[index] = card
+		self._dirty = True  # 设置为需要更新当前属性
 		
 	def getCardAtIndex(self, index):
 		if index < 0 or index >= 8:
@@ -420,20 +572,26 @@ class WeaponBase:
 		return self.cards[index]
 	
 	def updateCurrentProperties(self):
+		if not self._dirty:
+			return
 		self.currentProperties = copy.deepcopy(self.baseProperties)
-		HasGhostCard = False
+		GhostSetNum = 0
 		for card in self.cards:
 			if isinstance(card, CardCommon) and card.cardSet == CardSet.Ghost:
-				HasGhostCard = True
-		if HasGhostCard:
-			# 魈鬼系列应用另一套伤害公式
-			pass
+				GhostSetNum += 1
+		if GhostSetNum > 0:
+			propertyArray = []
+			for card in self.cards:
+				if card is not None:
+					propertyArray.extend(card.getProperties())
+			self.currentProperties.update_ghost(propertyArray, GhostSetNum)
 		else:
 			propertyArray = []
 			for card in self.cards:
 				if card is not None:
 					propertyArray.extend(card.getProperties())
 			self.currentProperties.update(propertyArray)
+		self._dirty = False
 
 	def printAllProperties(self):
 		if self.currentProperties is None:
@@ -448,4 +606,62 @@ class WeaponBase:
 			if card is not None:
 				print(f"- {card.name} ({card.weaponType})")
 
+	def getCardSetNum(self, cardSet: CardSet):
+		'''获取指定套装卡牌的数量'''
+		if cardSet == CardSet.Unset:
+			return 0
+		count = 0
+		for card in self.cards:
+			if isinstance(card, CardCommon) and card.cardSet == cardSet:
+				count += 1
+		return count
 
+# 所有异常状态的基类
+class DebuffBase:
+	def __init__(self, duration):
+		self.duration = duration
+		self.time = 0
+
+class DebuffQueue:
+	def __init__(self, maxLayers=-1):
+		self.queue = []
+		self.maxLayers = maxLayers
+
+	def addDebuff(self, debuff: DebuffBase):
+		if self.maxLayers < 0:
+			self.queue.append(debuff)
+		else:
+			# 如果当前层数小于最大层数，直接添加
+			if len(self.queue) < self.maxLayers:
+				self.queue.append(debuff)
+			else:
+				# 如果当前层数已经达到最大层数，替换掉最早的一个
+				self.queue.pop(0)
+				self.queue.append(debuff)
+
+	def count(self):
+		'''获取当前队列中的debuff数量'''
+		return len(self.queue)
+
+# 所有敌人的基类
+class EnemyBase:
+	def __init__(self, name, level, material):
+		self.name = name
+		self.level = level
+		self.material = material
+		self.debuff = [
+			None,			# 动能，但不需要
+			DebuffQueue(9),  # 冰冻
+			DebuffQueue(),  # 赛能
+			DebuffQueue(),  # 热波
+			DebuffQueue(),  # 创生
+			DebuffQueue(),  # 裂化
+			DebuffQueue(10),  # 辐射
+			DebuffQueue(),  # 毒气
+			DebuffQueue(10),  # 磁暴
+			DebuffQueue(10),  # 以太
+			DebuffQueue(10),  # 病毒
+		]
+		self.armor = 0.0
+		self.health = 0.0
+		self.shield = 0.0

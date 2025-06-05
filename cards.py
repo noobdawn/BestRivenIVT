@@ -8,7 +8,7 @@ RIFILE_CARDS = [
     C("私法 速效定装", MOD(P.ReloadTime, -60)),
     C("多重点射", MOD(P.MultiStrike, 90)),
     C("增压枪膛", MOD(P.AllDamage, 150)),
-    C("逆转之心", MOD(P.CriticalChance, 100)),
+    C("逆转之心", MOD(P.CriticalChance, 100), cardSet=CardSet.Reverse),
     C("透镜校准", MOD(P.DebuffDuration, 100)),
     C("快速回膛", MOD(P.AttackSpeed, 50)),
     C("裸露铅心", MOD(P.CriticalDamage, 125)),
@@ -19,8 +19,8 @@ RIFILE_CARDS = [
     C("感生电圈", MOD(P.Electric, 75)),
     C("高温枪管", MOD(P.Fire, 75)),
     C("弹孔注射", MOD(P.Poison, 75)),
-    C("致密打击", MOD(P.Physics, 50)),
-    # 魈鬼暂时忽略
+    C("致密打击", MOD(P.Physics, 75)),
+    C("魈鬼之眼", MOD(P.Physics, 75), cardSet=CardSet.Ghost),
 ]
 for card in RIFILE_CARDS:
     card.weaponType = WeaponType.Rifle
