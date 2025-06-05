@@ -576,6 +576,12 @@ class WeaponBase:
 			raise IndexError("Index out of range")
 		self.cards[index] = card
 		self._dirty = True  # 设置为需要更新当前属性
+
+	def removeCardAtIndex(self, index):
+		if index < 0 or index >= 8:
+			raise IndexError("Index out of range")
+		self.cards[index] = None
+		self._dirty = True
 		
 	def getCardAtIndex(self, index):
 		if index < 0 or index >= 8:
@@ -634,11 +640,13 @@ class DebuffBase:
 		self.time = 0
 
 class DebuffQueue:
-	def __init__(self, maxLayers=-1):
+	def __init__(self, maxLayers=-1, constantCount=0):
 		self.queue = []
 		self.maxLayers = maxLayers
+		self.constantCount = constantCount
 
 	def addDebuff(self, debuff: DebuffBase):
+		'''触发元素异常'''
 		if self.maxLayers < 0:
 			self.queue.append(debuff)
 		else:
@@ -650,9 +658,13 @@ class DebuffQueue:
 				self.queue.pop(0)
 				self.queue.append(debuff)
 
-	def count(self):
+	def setConstantCount(self, count):
+		'''设置不会消退的异常层数'''
+		self.constantCount = count if self.maxLayers < 0 else min(count, self.maxLayers)
+
+	def count(self) -> int:
 		'''获取当前队列中的debuff数量'''
-		return len(self.queue)
+		return min(len(self.queue) + self.constantCount, self.maxLayers) if self.maxLayers >= 0 else len(self.queue) + self.constantCount
 
 # 所有敌人的基类
 class EnemyBase:
@@ -661,7 +673,7 @@ class EnemyBase:
 		self.level = level
 		self.material = material
 		self.debuff = [
-			None,			# 动能，但不需要
+			DebuffQueue(),	# 动能，但不需要
 			DebuffQueue(9),  # 冰冻
 			DebuffQueue(),  # 赛能
 			DebuffQueue(),  # 热波
@@ -677,6 +689,16 @@ class EnemyBase:
 		self.health = 0.0
 		self.shield = 0.0
 
+	def setConstantDebuff(self, propertyType: PropertyType, count: int):
+		'''设置不会消退的异常层数'''
+		if propertyType.isElementDamage():
+			self.debuff[propertyType.value].setConstantCount(count)
+		else:
+			raise ValueError("Invalid property type for constant debuff")
+
 	def printEnemyInfo(self):
 		print(f"材质: {self.material.name}")
 		print(f"护甲: {self.armor}")
+		for propertyType, debuffQueue in enumerate(self.debuff):
+			if debuffQueue.count() > 0:
+				print(f"{PropertyType(propertyType).toString()}层数: {debuffQueue.count()}")

@@ -3,17 +3,7 @@ from core import *
 class WaterDrop_Prime(WeaponBase):
     def __init__(self):
         super().__init__("私法 水滴", PropertySnapshot([
-        Property(PropertyType.Physics, 0.0),
-        Property(PropertyType.Cold, 0.0),
-        Property(PropertyType.Electric, 0.0),
-        Property(PropertyType.Poison, 0.0),
-        Property(PropertyType.Fire, 0.0),
-        Property(PropertyType.Cracking, 0.0),
-        Property(PropertyType.Radiation, 0.0),
-        Property(PropertyType.Gas, 0.0),
-        Property(PropertyType.Magnetic, 0.0),
         Property(PropertyType.Ether, 31.0),
-        Property(PropertyType.Virus, 0.0),
         Property(PropertyType.CriticalChance, 26.0),
         Property(PropertyType.CriticalDamage, 170.0),
         Property(PropertyType.MultiStrike, 1.0),
@@ -24,3 +14,18 @@ class WaterDrop_Prime(WeaponBase):
         Property(PropertyType.ReloadTime, 1.7),
         Property(PropertyType.PenetrationRate, 80),
     ]), WeaponType.Rifle, "水滴", True)
+        
+class Arcturus_Primer(WeaponBase):
+    def __init__(self):
+        super().__init__("私法 大角星", PropertySnapshot([
+        Property(PropertyType.Physics, 25.0),
+        Property(PropertyType.Cold, 35.0),
+        Property(PropertyType.CriticalChance, 19.0),
+        Property(PropertyType.CriticalDamage, 210.0),
+        Property(PropertyType.MultiStrike, 1.0),
+        Property(PropertyType.TriggerChance, 27.0),
+        Property(PropertyType.AttackSpeed, 6),
+        Property(PropertyType.DebuffDuration, 100.0),
+        Property(PropertyType.MagazineSize, 20),
+        Property(PropertyType.ReloadTime, 1.9),
+    ]), WeaponType.Rifle, "北极星", True)

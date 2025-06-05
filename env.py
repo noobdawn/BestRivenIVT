@@ -11,9 +11,7 @@ class Environment:
 	nianSkillStrength = 100			# 年春秋技能强度
 
 	def printEnvironment(self):
-		print(f"移动状态: {self.isMoving}")
-		print(f"空中状态: {self.isInAir}")
-		print(f"瞄准状态: {self.isAiming}")
+		print(f"移动状态: {self.isMoving}\t空中状态: {self.isInAir}\t瞄准状态: {self.isAiming}")
 		print(f"套装卡牌数量: {self.SetNum}")
 		print(f"考虑专属卡牌: {self.considerExclusiveCards}")
 		print(f"侵犯光环数量: {self.invasionAuraNum}")
