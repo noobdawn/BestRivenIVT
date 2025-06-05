@@ -250,25 +250,36 @@ class PropertySnapshot:
 			])
 		return self.damageSnapshot.np_damage.sum()
 	
-	# 获取暴击率
 	def getCriticalChance(self):
+		'''获取暴击率'''
 		criticalChance = self.datas[PropertyType.CriticalChance].get()
 		return criticalChance
 	
-	# 获取暴击伤害
 	def getCriticalDamage(self):
+		'''获取暴击伤害'''
 		criticalDamage = self.datas[PropertyType.CriticalDamage].get()
 		return criticalDamage
 	
-	# 获取射速
 	def getAttackSpeed(self):
+		'''获取攻击速度'''
 		attackSpeed = self.datas[PropertyType.AttackSpeed].get()
 		return attackSpeed
 
-	# 获取多重
 	def getMultiStrike(self):
+		'''获取多重打击次数'''
 		multiStrike = self.datas[PropertyType.MultiStrike].get()
 		return multiStrike
+	
+	def getMagazineSize(self) -> int:
+		'''获取弹容量'''
+		magazineSize = self.datas[PropertyType.MagazineSize].get()
+		magazineSize = int(round(magazineSize))
+		return magazineSize
+	
+	def getReloadTime(self) -> float:
+		'''获取装填时间'''
+		reloadTime = self.datas[PropertyType.ReloadTime].get()
+		return reloadTime
 	
 	# 造成一次伤害
 	def MakeDamage(self) -> DamageCollection:
@@ -600,11 +611,11 @@ class WeaponBase:
 		print(f"Total Damage: {self.currentProperties.getTotalDamage()}")
 		for propertyType, property in self.currentProperties.datas.items():
 			if property.get() != 0:
-				print(f"{propertyType.toString()}: {property.get()} (Value: {property.value}, Addon: {property.addon})")
+				print(f"{propertyType.toString()}: {property.get()}")
 		print("Cards:")
 		for card in self.cards:
 			if card is not None:
-				print(f"- {card.name} ({card.weaponType})")
+				print(f"- {card.name}")
 
 	def getCardSetNum(self, cardSet: CardSet):
 		'''获取指定套装卡牌的数量'''
@@ -665,3 +676,7 @@ class EnemyBase:
 		self.armor = 0.0
 		self.health = 0.0
 		self.shield = 0.0
+
+	def printEnemyInfo(self):
+		print(f"材质: {self.material.name}")
+		print(f"护甲: {self.armor}")

@@ -143,5 +143,37 @@ def DamageTaken(damage: DamageCollection, enemy : EnemyBase) -> float:
     # 未考虑技能增伤
     return damageTaken    
 
+def CalculateDPSInMagazine(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
+    """
+    计算一个弹匣的DPS
+    :param weapon: 武器对象
+    :param enemy: 敌人对象
+    :param env: 环境变量
+    :return: 弹匣DPS
+    """
+    magazine = weapon.currentProperties.getMagazineSize()
+    damageTaken = 0
+    for i in range(magazine):
+        damage, damageTimes, criticalLevel = PullTriggerOnce(weapon, enemy, env)
+        for j in range(damageTimes):
+            # 计算每次造成的伤害
+            damageTaken += DamageTaken(damage, enemy) * damageTimes
+    attackSpeed = weapon.currentProperties.getAttackSpeed()
+    return damageTaken / (magazine / attackSpeed)  # 弹匣伤害除以弹匣射速得到DPS
 
-
+def CalculateAverageDPS(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
+    """
+    计算平均DPS
+    :param weapon: 武器对象
+    :param enemy: 敌人对象
+    :param env: 环境变量
+    :return: 平均DPS
+    """
+    magazine = weapon.currentProperties.getMagazineSize()
+    reloadTime = weapon.currentProperties.getReloadTime()
+    totalDamage = 0
+    for i in range(magazine):
+        damage, damageTimes, criticalLevel = PullTriggerOnce(weapon, enemy, env)
+        totalDamage += DamageTaken(damage, enemy) * damageTimes
+    attackSpeed = weapon.currentProperties.getAttackSpeed()
+    return totalDamage / (magazine / attackSpeed + reloadTime)
