@@ -13,12 +13,39 @@ class CardSet(Enum):
 	Invasion = 3	# 侵犯光环，增加30%伤害
 	Snake = 4		# 蛇年活动卡
 
+	def toString(self):
+		if self in CardSetToString:
+			return CardSetToString[self]
+		else:
+			raise ValueError(f"Unknown CardSet: {self}")
+
+CardSetToString = {
+	CardSet.Unset: "非套装卡片",
+	CardSet.Reverse: "逆转系列",
+	CardSet.Ghost: "魈鬼系列",
+	CardSet.Invasion: "侵犯光环",
+	CardSet.Snake: "蛇年活动卡"
+}
+
 @unique
 class EnemyMaterial(Enum):
 	Void = 0
 	Mechanical = 1
 	Biological = 2
 	Energy = 3
+
+	def toString(self):
+		if self in EnemyMaterialToString:
+			return EnemyMaterialToString[self]
+		else:
+			raise ValueError(f"Unknown EnemyMaterial: {self}")
+
+EnemyMaterialToString = {
+	EnemyMaterial.Void: "虚空",
+	EnemyMaterial.Mechanical: "机械",
+	EnemyMaterial.Biological: "生物",
+	EnemyMaterial.Energy: "能量"
+}
 
 @unique
 class PropertyType(Enum):

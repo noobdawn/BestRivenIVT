@@ -24,7 +24,7 @@ CARDS_REPOSITORY = {
         C("感生电圈", MOD(P.Electric, 75)),
         C("高温枪管", MOD(P.Fire, 75)),
         C("弹孔注射", MOD(P.Poison, 75)),
-        C("致密打击", MOD(P.Physics, 75)),
+        # C("致密打击", MOD(P.Physics, 75)), # 这张卡牌和"魈鬼之眼"属性重复，如果走动能流其实是完全不用的
     ],
 }
 

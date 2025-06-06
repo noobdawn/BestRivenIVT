@@ -591,8 +591,9 @@ class EnemyBase:
 			raise ValueError("Invalid property type for constant debuff")
 
 	def printEnemyInfo(self):
-		print(f"材质: {self.material.name}")
+		print(f"当前敌人")
+		print(f"材质: {self.material.toString()}")
 		print(f"护甲: {self.armor}")
 		for propertyType, debuffQueue in enumerate(self.debuff):
 			if debuffQueue.count() > 0:
-				print(f"{PropertyType(propertyType).toString()}层数: {debuffQueue.count()}")
+				print(f"{PropertyType(propertyType).toString()} 层数: {debuffQueue.count()}")

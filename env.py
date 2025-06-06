@@ -15,11 +15,15 @@ class Environment:
 		self.reset()
 
 	def printEnvironment(self):
-		print(f"移动状态: {self.isMoving}\t空中状态: {self.isInAir}\t瞄准状态: {self.isAiming}")
-		print(f"套装卡牌数量: {self.SetNum}")
-		print(f"考虑专属卡牌: {self.considerExclusiveCards}")
-		print(f"使用年春秋技能: {self.useNianSkill}")
-		print(f"年春秋技能强度: {self.nianSkillStrength}")
+		print("当前环境:")
+		print(f"{'移动中' if self.isMoving else '静止'} | "
+			  f"{'空中' if self.isInAir else '地面'} | "
+			  f"{'瞄准中' if self.isAiming else '非瞄准'}")
+		for cardSet in CardSet:
+			if self.SetNum[cardSet.value] > 0:
+				print(f"{cardSet.toString()} 数量: {self.SetNum[cardSet.value]}")
+		if self.useNianSkill:
+			print(f"使用年春秋技能，强度: {self.nianSkillStrength}")
 
 	def reset(self):
 		self.isMoving = False

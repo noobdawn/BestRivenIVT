@@ -61,56 +61,49 @@ def GetCriticalMultiplier(weapon: WeaponBase, enemy: EnemyBase) -> tuple:
     计算暴击倍率
     :param weapon: 武器对象
     :param enemy: 敌人对象
-    :return: (暴击倍率, 是否暴击)
+    :return: (未暴击伤害倍率，暴击伤害倍率）
     '''
     criticalChance = weapon.currentProperties.getCriticalChance()
     criticalDamage = weapon.currentProperties.getCriticalDamage()
-    coldCount = enemy.debuff[PropertyType.Cold.value].count()
+    coldCount = 0
+    if enemy is not None:
+        coldCount = enemy.debuff[PropertyType.Cold.value].count()
     coldCriticalDamage = 0
     if coldCount > 0:
         coldCriticalDamage = 0.1 + (coldCount - 1) * 0.05  # 冰冻debuff增加敌人受到的暴击伤害10%，每层叠加冰冻敌人受到的暴击伤害额外增加5%
     # 如果暴击几率为0，则直接返回1.0
     if criticalChance <= 0:
-        return 1.0, 0
+        return 1, 1
     elif criticalChance <= 100:
-        if rand() < criticalChance / 100.0:  # 如果随机数小于暴击几率，则触发暴击
-            return criticalDamage / 100.0 + coldCriticalDamage, 1
-        else:
-            return 1.0, 0
+        return 1.0, criticalDamage / 100.0 + coldCriticalDamage
     else:
         lowerCriticalLevel = int(criticalChance / 100)
         upperCriticalLevel = lowerCriticalLevel + 1
-        criticalLevel = lowerCriticalLevel
-        if rand() < (criticalChance - lowerCriticalLevel * 100) / 100.0:  # 如果随机数小于暴击几率的余数部分，则触发更高等级的暴击
-            criticalLevel = upperCriticalLevel
-        return criticalLevel * (criticalDamage / 100.0 + coldCriticalDamage), criticalLevel
+        return lowerCriticalLevel * (criticalDamage / 100.0 + coldCriticalDamage), upperCriticalLevel * (criticalDamage / 100.0 + coldCriticalDamage)
 
-# 武器攻击一次，但不等于只造成一次伤害，因为有可能有多重射击，返回所有伤害
+# 获得武器伤害
 # 此处计入了：
 # - 武器伤害
 # - 外部伤害加成倍率
 # - 暴击
-def PullTriggerOnce(weapon: WeaponBase, enemy : EnemyBase, env: Environment) -> tuple:
+def GetWeaponDamage(weapon: WeaponBase, enemy : EnemyBase, env: Environment) -> tuple:
     """
-    模拟武器触发一次攻击，返回造成的伤害和伤害次数
+    获取武器伤害
+    :param weapon: 武器对象
+    :param enemy: 敌人对象
+    :param env: 环境变量
+    :return: (未暴击伤害，暴击伤害）
     """
-    multistrike = weapon.currentProperties.getMultiStrike()
     damage = copy.deepcopy(weapon.currentProperties.MakeDamage())   # 深拷贝当前属性的伤害，避免修改快照变化
-    # todo: 这里还要考虑到像是光环或者逆转卡之类的伤害加成
+    # 计算外部伤害加成倍率
     invasionAuraNum = env.SetNum[CardSet.Invasion.value]
-    reverseSetNum = env.SetNum[CardSet.Reverse.value] + weapon.getCardSetNum(CardSet.Reverse)  # 逆转套装数量
+    reverseSetNum = env.SetNum[CardSet.Reverse.value] + weapon.getCardSetNum(CardSet.Reverse)
     if not env.isMoving:
         reverseSetNum = 0   # 逆转套装仅在移动时生效
     damage *= 1 + invasionAuraNum * 0.3 + reverseSetNum * 0.3 + (env.sniperComboMulti - 1)  # 光环、逆转和狙击枪连击的伤害加成
     # 计算暴击对伤害的放大
-    criticalMultiplier, criticalLevel = GetCriticalMultiplier(weapon, enemy)
-    damage *= criticalMultiplier
-    # 考虑到多重，可能需要多次制造伤害
-    damageTimes = int(multistrike)  # 多重射击的整数部分
-    if multistrike - int(multistrike) > 0:
-        if rand() < (multistrike - int(multistrike)):
-            damageTimes += 1
-    return damage, damageTimes, criticalLevel
+    uncriticalMultiplier, criticalMultiplier = GetCriticalMultiplier(weapon, enemy)
+    return damage * uncriticalMultiplier, damage * criticalMultiplier
 
 def VulnerableVirusMultiplier(enemy: EnemyBase) -> float:
     """
@@ -129,6 +122,9 @@ def VulnerableVirusMultiplier(enemy: EnemyBase) -> float:
 # - 护甲减伤
 # - 易伤倍率，todo：目前只考虑了病毒
 def DamageTaken(damage: DamageCollection, enemy : EnemyBase) -> float:
+     # 如果没有敌人，则直接返回伤害总和作为参考
+    if enemy is None:
+        return damage.sum()
     damageTaken = DamageTakenByMaterial(damage, enemy.material).sum()
     # 考虑削甲之后的护甲
     baseArmor = enemy.armor
@@ -141,9 +137,38 @@ def DamageTaken(damage: DamageCollection, enemy : EnemyBase) -> float:
     # 考虑易伤倍率
     damageTaken *= VulnerableVirusMultiplier(enemy)
     # 未考虑技能增伤
-    return damageTaken    
+    return damageTaken
 
-def CalculateDPSInMagazine(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
+def CalculateMagazineDamage(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
+    """
+    计算一个弹匣造成的总伤害
+    :param weapon: 武器对象
+    :param enemy: 敌人对象
+    :param env: 环境变量
+    :return: 总伤害
+    """
+    magazine = weapon.currentProperties.getMagazineSize()
+    uncriticalDamage, criticalDamage = GetWeaponDamage(weapon, enemy, env)
+    uncriticalDamageTaken = DamageTaken(uncriticalDamage, enemy)
+    criticalDamageTaken = DamageTaken(criticalDamage, enemy)
+    damageTaken = 0
+    for i in range(magazine):
+        # 计算多重打击次数
+        multistrike = weapon.currentProperties.getMultiStrike()
+        damageTimes = int(multistrike)
+        if rand() < (multistrike - int(multistrike)):
+            damageTimes += 1
+        for j in range(damageTimes):
+            # 计算是否暴击
+            criticalChance = weapon.currentProperties.getCriticalChance() / 100.0
+            useDamage = uncriticalDamageTaken
+            if rand() < criticalChance - int(criticalChance):
+                useDamage = criticalDamageTaken
+            damageTaken += useDamage
+    attackSpeed = weapon.currentProperties.getAttackSpeed()
+    return damageTaken / (magazine / attackSpeed)  # 弹匣伤害除以弹匣射速得到DPS
+
+def CalculateMagazineDPS(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
     """
     计算一个弹匣的DPS
     :param weapon: 武器对象
@@ -152,14 +177,9 @@ def CalculateDPSInMagazine(weapon: WeaponBase, enemy: EnemyBase, env: Environmen
     :return: 弹匣DPS
     """
     magazine = weapon.currentProperties.getMagazineSize()
-    damageTaken = 0
-    for i in range(magazine):
-        damage, damageTimes, criticalLevel = PullTriggerOnce(weapon, enemy, env)
-        for j in range(damageTimes):
-            # 计算每次造成的伤害
-            damageTaken += DamageTaken(damage, enemy) * damageTimes
+    magazineDamage = CalculateMagazineDamage(weapon, enemy, env)
     attackSpeed = weapon.currentProperties.getAttackSpeed()
-    return damageTaken / (magazine / attackSpeed)  # 弹匣伤害除以弹匣射速得到DPS
+    return magazineDamage / (magazine / attackSpeed)
 
 def CalculateAverageDPS(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
     """
@@ -171,9 +191,6 @@ def CalculateAverageDPS(weapon: WeaponBase, enemy: EnemyBase, env: Environment) 
     """
     magazine = weapon.currentProperties.getMagazineSize()
     reloadTime = weapon.currentProperties.getReloadTime()
-    totalDamage = 0
-    for i in range(magazine):
-        damage, damageTimes, criticalLevel = PullTriggerOnce(weapon, enemy, env)
-        totalDamage += DamageTaken(damage, enemy) * damageTimes
+    magazineDamage = CalculateMagazineDamage(weapon, enemy, env)
     attackSpeed = weapon.currentProperties.getAttackSpeed()
-    return totalDamage / (magazine / attackSpeed + reloadTime)
+    return magazineDamage / (magazine / attackSpeed + reloadTime)  # 弹匣伤害除以弹匣射速和换弹时间得到DPS
