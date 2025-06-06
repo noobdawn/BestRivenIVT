@@ -95,62 +95,70 @@ def getAllPermutations(cards_to_permute : list, cards_to_combine : list, max_slo
 
     return results
 
-# from env import env
-# env.SetNum[core.CardSet.Ghost.value] = 0  # 魈鬼之眼套装数量
-# env.SetNum[core.CardSet.Reverse.value] = 2  # 逆转之心套装数量
-# env.SetNum[core.CardSet.Invasion.value] = 1  # 侵犯光环数量
-# env.printEnvironment()
+from env import env
+env.SetNum[core.CardSet.Ghost.value] = 0  # 魈鬼之眼套装数量
+env.SetNum[core.CardSet.Reverse.value] = 2  # 逆转之心套装数量
+env.SetNum[core.CardSet.Invasion.value] = 1  # 侵犯光环数量
+env.printEnvironment()
 
-# print("")
+print("")
 
-# enemy = core.EnemyBase("测试敌人", 0, core.EnemyMaterial.Mechanical)
-# enemy.armor = 850
-# enemy.printEnemyInfo()
+enemy = core.EnemyBase("测试敌人", 0, core.EnemyMaterial.Mechanical)
+enemy.armor = 850
+enemy.printEnemyInfo()
 
-# import weapons
-# weapon = weapons.WaterDrop_Prime()
-# weapon.setCardAtIndex(2, core.CardRiven("水滴 多重（裂罅）", 
-#     [
-#         core.Property(core.PropertyType.MultiStrike, 0, 104),
-#         core.Property(core.PropertyType.AllDamage, 0, 204),
-#     ], 
-#     core.WeaponType.Rifle))
-# cards_to_permute, cards_to_combine = getAllAvailableCards(weapon)
-# all_permutations = getAllPermutations(cards_to_permute, cards_to_combine, 8)
-# Pruning(all_permutations, env)
-
-# import copy
-# clone_weapon = copy.deepcopy
-
-# # 逐个测试各个组合的伤害
-# max_dps = 0
-# max_permutation = None
-# total_permutations = len(all_permutations)
-# progress_step = total_permutations // 100 if total_permutations >= 100 else 1
-# import time
-# start_time = time.time()
-# for idx, perm in enumerate(all_permutations):
-#     weapon.setCardPermutes(perm)
-#     weapon.updateCurrentProperties()
-#     currentDps = dps.CalculateMagazineDamage(weapon, enemy, env)
-
-#     if currentDps > max_dps:
-#         max_dps = currentDps
-#         max_permutation = perm
-#         print(f"New max DPS: {max_dps:.2f} with cards: {[card.name for card in perm]}")
-    
-# end_time = time.time()
-# print(f'Total time taken: {end_time - start_time:.2f} seconds')
-# print(f"Max DPS found: {max_dps:.2f}")
-# print(f"All {len(all_permutations)} permutations processed.")
-
-# weapon.setCardPermutes(max_permutation)
+import weapons
+weapon = weapons.WaterDrop_Prime()
+# weapon.setCardAtIndex(0, cards.getCardByName("零度弹头", core.WeaponType.Rifle))
+# weapon.setCardAtIndex(1, cards.getCardByName("弹孔注射", core.WeaponType.Rifle))
+# weapon.setCardAtIndex(2, cards.getCardByName("感生电圈", core.WeaponType.Rifle))
+# weapon.setCardAtIndex(3, cards.getCardByName("增压枪膛", core.WeaponType.Rifle))
+# weapon.setCardAtIndex(4, cards.getCardByName("快速回膛", core.WeaponType.Rifle))
+# weapon.setCardAtIndex(5, cards.getCardByName("裸露铅心", core.WeaponType.Rifle))
+# weapon.setCardAtIndex(6, cards.getCardByName("弹道修正", core.WeaponType.Rifle))
+weapon.setCardAtIndex(7, core.CardRiven("水滴 多重（裂罅）", 
+    [
+        core.Property(core.PropertyType.MultiStrike, 0, 104),
+        core.Property(core.PropertyType.AllDamage, 0, 204),
+    ], 
+    core.WeaponType.Rifle))
 # weapon.updateCurrentProperties()
 # weapon.printAllProperties()
+
+
+cards_to_permute, cards_to_combine = getAllAvailableCards(weapon)
+all_permutations = getAllPermutations(cards_to_permute, cards_to_combine, 8)
+Pruning(all_permutations, env)
+
+import copy
+clone_weapon = copy.deepcopy
+
+# 逐个测试各个组合的伤害
+max_dps = 0
+max_permutation = None
+total_permutations = len(all_permutations)
+progress_step = total_permutations // 100 if total_permutations >= 100 else 1
+import time
+start_time = time.time()
+for idx, perm in enumerate(all_permutations):
+    enemy.clearDebuff()
+    weapon.setCardPermutes(perm)
+    weapon.updateCurrentProperties()
+    currentDps = dps.CalculateMagazineDamage(weapon, enemy, env)
+
+    if currentDps > max_dps:
+        max_dps = currentDps
+        max_permutation = perm
+        print(f"New max DPS: {max_dps:.2f} with cards: {[card.name for card in perm]}")
+    
+end_time = time.time()
+print(f'Total time taken: {end_time - start_time:.2f} seconds')
+print(f"Max DPS found: {max_dps:.2f}")
+print(f"All {len(all_permutations)} permutations processed.")
+
+weapon.setCardPermutes(max_permutation)
+weapon.updateCurrentProperties()
+weapon.printAllProperties()
 # # 计算下这个组合下攻击敌人的伤害
-# uncriticalDamage, criticalDamage = dps.GetWeaponDamage(weapon, enemy, env)
-# uncriticalDamageTaken = dps.DamageTaken(uncriticalDamage, enemy)
-# criticalDamageTaken = dps.DamageTaken(criticalDamage, enemy)
-# print(f"Max permutation cards: {[card.name for card in max_permutation]}")
-# print(f"Uncritical Damage Taken: {uncriticalDamageTaken:.2f}")
-# print(f"Critical Damage Taken: {criticalDamageTaken:.2f}")
+OneHitDamage = dps.CalculateDamageOnce(weapon, enemy, env, forceCritical=True, forceTrigger=-1)
+print(f"One hit damage with max permutation: {OneHitDamage:.2f}")

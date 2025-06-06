@@ -59,7 +59,7 @@ class TestDPSCalculation(unittest.TestCase):
         weapon.setCardAtIndex(2, getCardByName("长枪专家", WeaponType.Rifle))
         weapon.setCardAtIndex(3, getCardByName("裸露铅心", WeaponType.Rifle))
         weapon.setCardAtIndex(4, getCardByName("快速回膛", WeaponType.Rifle))
-        weapon.printAllProperties()
+        weapon.updateCurrentProperties()
 
         # 计算触发元素异常后每层电元素异常和裂化DoT的伤害
         baseWeaponDamage = dps.GetBaseWeaponDamage(weapon)
@@ -85,6 +85,22 @@ class TestDPSCalculation(unittest.TestCase):
         crackingDoTDamageTaken = dps.DamageTakenDoT(crackingDoTDamage, PropertyType.Cracking, enemy)
         self.assertAlmostEqual(electricDoTDamageTaken, 5, delta=1, msg="电元素异常DoT伤害计算错误，预期为5 ± 1")
         self.assertAlmostEqual(crackingDoTDamageTaken, 7, delta=1, msg="裂化元素异常DoT伤害计算错误，预期为7 ± 1")
+
+    # 测试DoT伤害用例3
+    # 用例：默认环境，私法大角星，上一张火元素
+    # 伤害结果：需触发裂化元素异常，伤害总量为31 + 37 * 6 = 253
+    def test_DoT_2(self):
+        env.reset()
+        
+        enemy = EnemyBase("测试敌人", 0, EnemyMaterial.Mechanical)
+        enemy.armor = 850
+
+        weapon = weapons.Arcturus_Primer()
+        weapon.setCardAtIndex(0, getCardByName("高温枪管", WeaponType.Rifle))
+        weapon.updateCurrentProperties()
+
+        damageTaken = dps.CalculateDamageOnce(weapon, enemy, env, forceCritical=-1, forceTrigger=1)
+        self.assertAlmostEqual(damageTaken, 253, delta=1, msg="DoT伤害计算错误，预期为253 ± 1")
 
 if __name__ == '__main__':
     unittest.main()

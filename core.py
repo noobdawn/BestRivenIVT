@@ -13,6 +13,9 @@ for i in range(128):
 # 获取随机数
 _RANDOM_INDEX = 0
 def rand():
+	'''
+	获取一个介于0~1之间的随机数
+	'''
 	global _RANDOM_INDEX
 	if _RANDOM_INDEX >= len(_RANDOM_NUMBERS):
 		_RANDOM_INDEX = 0
@@ -30,7 +33,9 @@ class DamageCollection:
 		], dtype=np.float32)
 
 	def sum(self):
-		'''返回所有伤害的总和'''
+		'''
+		返回所有伤害的总和
+		'''
 		return self.np_damage.sum()
 
 	@classmethod
@@ -218,19 +223,27 @@ class PropertySnapshot:
 			if propertyType == PropertyType.Fire:
 				find, property = FindElementDamage(PropertyType.Cracking)
 				if not find:
-					find, property = FindElementDamage(PropertyType.Radiation)
+					find, property = FindElementDamage(PropertyType.Gas)
+					if not find:
+						find, property = FindElementDamage(PropertyType.Ether)
 			elif propertyType == PropertyType.Cold:
+				find, property = FindElementDamage(PropertyType.Cracking)
+				if not find:
+					find, property = FindElementDamage(PropertyType.Magnetic)
+					if not find:
+						find, property = FindElementDamage(PropertyType.Virus)
+			elif propertyType == PropertyType.Electric:
 				find, property = FindElementDamage(PropertyType.Radiation)
 				if not find:
 					find, property = FindElementDamage(PropertyType.Magnetic)
-			elif propertyType == PropertyType.Electric:
-				find, property = FindElementDamage(PropertyType.Cracking)
+					if not find:
+						find, property = FindElementDamage(PropertyType.Ether)
+			elif propertyType == PropertyType.Poison:
+				find, property = FindElementDamage(PropertyType.Virus)
 				if not find:
 					find, property = FindElementDamage(PropertyType.Gas)
-			elif propertyType == PropertyType.Poison:
-				find, property = FindElementDamage(PropertyType.Gas)
-				if not find:
-					find, property = FindElementDamage(PropertyType.Magnetic)
+					if not find:
+						find, property = FindElementDamage(PropertyType.Radiation)
 			return find, property
 
 		for i in range(len(elementDamageArray)):
@@ -277,10 +290,10 @@ class PropertySnapshot:
 				# 冰冻
 				find, property = FindElementDamage(PropertyType.Electric)
 				if find:
-					# 如果有赛能，复合成辐射
+					# 如果有赛能，复合成磁暴
 					property.value += elementDamageArray[i].get()
 					property.addon = 0.0
-					property.propertyType = PropertyType.Radiation
+					property.propertyType = PropertyType.Magnetic
 					continue
 				else:
 					find, property = FindElementDamage(PropertyType.Poison)
@@ -302,10 +315,10 @@ class PropertySnapshot:
 				# 赛能
 				find, property = FindElementDamage(PropertyType.Fire)
 				if find:
-					# 如果有热波，复合成辐射
+					# 如果有热波，复合成以太
 					property.value += elementDamageArray[i].get()
 					property.addon = 0.0
-					property.propertyType = PropertyType.Radiation
+					property.propertyType = PropertyType.Ether
 					continue
 				else:
 					find, property = FindElementDamage(PropertyType.Cold)
@@ -318,10 +331,10 @@ class PropertySnapshot:
 					else:
 						find, property = FindElementDamage(PropertyType.Poison)
 						if find:
-							# 如果有创生，复合成毒气
+							# 如果有创生，复合成辐射
 							property.value += elementDamageArray[i].get()
 							property.addon = 0.0
-							property.propertyType = PropertyType.Gas
+							property.propertyType = PropertyType.Radiation
 							continue
 			elif damageType == PropertyType.Poison:
 				# 创生
@@ -343,10 +356,10 @@ class PropertySnapshot:
 					else:
 						find, property = FindElementDamage(PropertyType.Cold)
 						if find:
-							# 如果有冰冻，复合成磁暴
+							# 如果有冰冻，复合成病毒
 							property.value += elementDamageArray[i].get()
 							property.addon = 0.0
-							property.propertyType = PropertyType.Magnetic
+							property.propertyType = PropertyType.Virus
 							continue
 			# 如果没有可复合的元素伤害，直接添加到FinalDamageArray
 			FinalDamageArray.append(copy.deepcopy(elementDamageArray[i]))
@@ -605,6 +618,11 @@ class EnemyBase:
 			self.debuff[propertyType.value].addDebuff(debuff)
 		else:
 			raise ValueError("Invalid property type for debuff")
+		
+	def clearDebuff(self):
+		'''清除元素异常'''
+		for debuffQueue in self.debuff:
+			debuffQueue.queue.clear()
 
 	def printEnemyInfo(self):
 		print(f"当前敌人")

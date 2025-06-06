@@ -200,6 +200,52 @@ def TriggerElementDebuff(damage : DamageCollection) -> PropertyType:
         currentThreshold += damage.np_damage[i] / totalElementDamage
         if r < currentThreshold:
             return PropertyType(i)
+        
+def CalculateDamageOnce(weapon: WeaponBase, enemy: EnemyBase, env: Environment,
+                        baseWeaponDamage: DamageCollection = None,
+                        forceCritical : int = 0, forceTrigger : int = 0) -> float:
+                        
+    '''
+    计算单次造成的伤害
+    '''
+    if baseWeaponDamage is None:
+        baseWeaponDamage = GetBaseWeaponDamage(weapon)
+    externalDamageMultiplier = GetExternalDamageMultiplier(weapon, enemy, env)
+    uncriticalMultiplier, criticalMultiplier = GetCriticalMultiplier(weapon, enemy)
+    uncriticalDamage = baseWeaponDamage * uncriticalMultiplier * externalDamageMultiplier
+    criticalDamage = baseWeaponDamage * criticalMultiplier * externalDamageMultiplier
+    uncriticalDamageTaken = DamageTaken(uncriticalDamage, enemy)
+    criticalDamageTaken = DamageTaken(criticalDamage, enemy)
+    # 计算是否暴击，以得到直接伤害
+    directDamageTaken = uncriticalDamageTaken
+    criticalChance = weapon.currentProperties.getCriticalChance() / 100.0
+    if forceCritical == 1 or (forceCritical == 0 and rand() < criticalChance):
+        directDamageTaken = criticalDamageTaken
+    # 持续伤害
+    doTDamageTaken = 0.0
+    # 计算是否触发元素异常
+    if enemy is not None:
+        # 计算元素异常触发几率
+        triggerChance = weapon.currentProperties.getTriggerChance()
+        if forceTrigger == 1 or (forceTrigger == 0 and rand() < triggerChance / 100.0):
+            # 触发元素异常
+            debuffProperty = TriggerElementDebuff(uncriticalDamage)
+            # 直接添加到敌人身上
+            enemy.addDebuff(debuffProperty, DebuffBase(6))  # 添加元素异常
+            # 如果是伤害类的Debuff，则其持续伤害总量计入到damageTaken中
+            DoTMultiplier = 0.0
+            if debuffProperty == PropertyType.Fire or debuffProperty == PropertyType.Electric or debuffProperty == PropertyType.Gas:
+                # 热波、赛能、毒气元素异常的持续伤害倍率为 0.5，持续6秒
+                DoTMultiplier = 0.5
+            elif debuffProperty == PropertyType.Cracking:
+                # 裂化的伤害倍率为 0.35，持续6秒
+                DoTMultiplier = 0.35
+            if DoTMultiplier > 0:
+                DoTDamage = baseWeaponDamage.sum() * externalDamageMultiplier * DoTMultiplier
+                doTDamageTaken = DamageTakenDoT(DoTDamage, debuffProperty, enemy) * 6
+
+    return directDamageTaken + doTDamageTaken  # 返回直接伤害和持续伤害的总和
+
 
 def CalculateMagazineDamage(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
     """
@@ -211,12 +257,6 @@ def CalculateMagazineDamage(weapon: WeaponBase, enemy: EnemyBase, env: Environme
     """
     magazine = weapon.currentProperties.getMagazineSize()
     baseWeaponDamage = GetBaseWeaponDamage(weapon)
-    externalDamageMultiplier = GetExternalDamageMultiplier(weapon, enemy, env)
-    uncriticalMultiplier, criticalMultiplier = GetCriticalMultiplier(weapon, enemy)
-    uncriticalDamage = baseWeaponDamage * uncriticalMultiplier * externalDamageMultiplier
-    criticalDamage = baseWeaponDamage * criticalMultiplier * externalDamageMultiplier
-    uncriticalDamageTaken = DamageTaken(uncriticalDamage, enemy)
-    criticalDamageTaken = DamageTaken(criticalDamage, enemy)
     damageTaken = 0
     for i in range(magazine):
         # 计算多重打击次数
@@ -226,37 +266,10 @@ def CalculateMagazineDamage(weapon: WeaponBase, enemy: EnemyBase, env: Environme
             damageTimes += 1
         # 这里是实际造成伤害的地方
         for j in range(damageTimes):
-            # 计算是否暴击
-            criticalChance = weapon.currentProperties.getCriticalChance() / 100.0
-            useDamageTaken = uncriticalDamageTaken
-            if rand() < criticalChance - int(criticalChance):
-                useDamageTaken = criticalDamageTaken
-            damageTaken += useDamageTaken
-            # 造成伤害后，这里是计算是否触发了元素异常的地方
-            if enemy is not None:
-                # 计算元素异常触发几率
-                triggerChance = weapon.currentProperties.getTriggerChance()
-                if rand() < triggerChance / 100.0:
-                    # 触发元素异常
-                    debuffProperty = TriggerElementDebuff(uncriticalDamage)
-                    # 直接添加到敌人身上
-                    enemy.addDebuff(debuffProperty, DebuffBase(debuffProperty, 6))  # 添加元素异常
-                    # 如果是伤害类的Debuff，则其持续伤害总量计入到damageTaken中
-                    DoTMultiplier = 0.0
-                    if debuffProperty == PropertyType.Fire or debuffProperty == PropertyType.Electric or debuffProperty == PropertyType.Gas:
-                        # 热波、赛能、毒气元素异常的持续伤害倍率为 0.5，持续6秒
-                        DoTMultiplier = 0.5
-                    elif debuffProperty == PropertyType.Cracking:
-                        # 裂化的伤害倍率为 0.35，持续6秒
-                        DoTMultiplier = 0.35
-                    if DoTMultiplier > 0:
-                        DoTDamage = baseWeaponDamage.sum() * externalDamageMultiplier * DoTMultiplier
-                        DoTDamageTaken = DamageTakenDoT(DoTDamage, debuffProperty, enemy)
-                        damageTaken += DoTDamageTaken * 6
-
-
+            damageTaken += CalculateDamageOnce(weapon, enemy, env, baseWeaponDamage,
+                                               forceCritical=0, forceTrigger=0)
     attackSpeed = weapon.currentProperties.getAttackSpeed()
-    return damageTaken / (magazine / attackSpeed)  # 弹匣伤害除以弹匣射速得到DPS
+    return damageTaken
 
 def CalculateMagazineDPS(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
     """

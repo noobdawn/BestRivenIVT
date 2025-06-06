@@ -47,7 +47,7 @@ EnemyMaterialToString = {
 	EnemyMaterial.Energy: "能量"
 }
 
-@unique
+
 class PropertyType(Enum):
 	# 伤害类型
 	Physics = 0
@@ -63,31 +63,30 @@ class PropertyType(Enum):
 	Ether = 9
 	Virus = 10
 	# 暴击
-	CriticalChance = 100
-	CriticalDamage = 101
+	CriticalChance = 11
+	CriticalDamage = 12
 	# 触发
-	TriggerChance = 102
+	TriggerChance = 13
 	# 攻击速度
-	AttackSpeed = 103
+	AttackSpeed = 14
 	# 多重
-	MultiStrike = 1001
+	MultiStrike = 15
 	# 弱点伤害
-	Headshot = 104
+	Headshot = 16
 	# 异常持续时间
-	DebuffDuration = 105
+	DebuffDuration = 17
 	# 弹容量
-	MagazineSize = 1002
+	MagazineSize = 18
 	# 装填时间
-	ReloadTime = 1003
+	ReloadTime = 19
 	# 穿甲率和穿甲值
-	PenetrationRate = 106
-	PenetrationValue = 107
+	PenetrationRate = 20
+	PenetrationValue = 21
 	# 武器伤害
-	AllDamage = 108
-	
-	# 是否是远程武器才有的参数
-	def isRanged(self):
-		return self.value > 1000 and self.value < 2000
+	AllDamage = 22
+	# 最大枚举
+	_Max = 23
+	_Damage = 11
 	
 	def isBaseElementDamage(self):
 		'''判断是否是基础元素伤害'''
