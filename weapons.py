@@ -28,4 +28,19 @@ class Arcturus_Primer(WeaponBase):
         Property(PropertyType.DebuffDuration, 100.0),
         Property(PropertyType.MagazineSize, 20),
         Property(PropertyType.ReloadTime, 1.9),
-    ]), WeaponType.Rifle, "北极星", True)
+    ]), WeaponType.Rifle, "大角星", True)
+        
+class FocusLamp(WeaponBase):
+    def __init__(self):
+        super().__init__("聚焦矿灯", PropertySnapshot([
+        Property(PropertyType.Electric, 10.0),
+        Property(PropertyType.Cracking, 9.0),
+        Property(PropertyType.CriticalChance, 16.0),
+        Property(PropertyType.CriticalDamage, 190.0),
+        Property(PropertyType.MultiStrike, 1.0),
+        Property(PropertyType.TriggerChance, 16.0),
+        Property(PropertyType.AttackSpeed, 10.0),
+        Property(PropertyType.DebuffDuration, 100.0),
+        Property(PropertyType.MagazineSize, 35),
+        Property(PropertyType.ReloadTime, 2),
+    ]), WeaponType.Rifle, "聚焦矿灯", True)

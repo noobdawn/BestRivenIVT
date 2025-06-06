@@ -81,29 +81,52 @@ def GetCriticalMultiplier(weapon: WeaponBase, enemy: EnemyBase) -> tuple:
         upperCriticalLevel = lowerCriticalLevel + 1
         return lowerCriticalLevel * (criticalDamage / 100.0 + coldCriticalDamage), upperCriticalLevel * (criticalDamage / 100.0 + coldCriticalDamage)
 
-# 获得武器伤害
-# 此处计入了：
-# - 武器伤害
-# - 外部伤害加成倍率
-# - 暴击
-def GetWeaponDamage(weapon: WeaponBase, enemy : EnemyBase, env: Environment) -> tuple:
+def GetBaseWeaponDamage(weapon: WeaponBase) -> DamageCollection:
     """
-    获取武器伤害
+    获取武器的基础伤害
+    :param weapon: 武器对象
+    :return: 基础伤害集合
+    """
+    # 获取武器当前属性的伤害快照
+    return copy.deepcopy(weapon.currentProperties.MakeDamage())
+
+def GetExternalDamageMultiplier(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
+    '''
+    获取外部伤害加成倍率
     :param weapon: 武器对象
     :param enemy: 敌人对象
     :param env: 环境变量
-    :return: (未暴击伤害，暴击伤害）
-    """
-    damage = copy.deepcopy(weapon.currentProperties.MakeDamage())   # 深拷贝当前属性的伤害，避免修改快照变化
-    # 计算外部伤害加成倍率
+    :return: 外部伤害加成倍率
+    '''
     invasionAuraNum = env.SetNum[CardSet.Invasion.value]
     reverseSetNum = env.SetNum[CardSet.Reverse.value] + weapon.getCardSetNum(CardSet.Reverse)
     if not env.isMoving:
         reverseSetNum = 0   # 逆转套装仅在移动时生效
-    damage *= 1 + invasionAuraNum * 0.3 + reverseSetNum * 0.3 + (env.sniperComboMulti - 1)  # 光环、逆转和狙击枪连击的伤害加成
-    # 计算暴击对伤害的放大
-    uncriticalMultiplier, criticalMultiplier = GetCriticalMultiplier(weapon, enemy)
-    return damage * uncriticalMultiplier, damage * criticalMultiplier
+    return 1 + invasionAuraNum * 0.3 + reverseSetNum * 0.3 + (env.sniperComboMulti - 1)  # 光环、逆转和狙击枪连击的伤害加成
+
+# # 获得武器伤害
+# # 此处计入了：
+# # - 武器伤害
+# # - 外部伤害加成倍率
+# # - 暴击
+# def GetWeaponDamage(weapon: WeaponBase, enemy : EnemyBase, env: Environment) -> tuple:
+#     """
+#     获取武器伤害
+#     :param weapon: 武器对象
+#     :param enemy: 敌人对象
+#     :param env: 环境变量
+#     :return: (未暴击伤害，暴击伤害）
+#     """
+#     damage = GetBaseWeaponDamage(weapon)   # 深拷贝当前属性的伤害，避免修改快照变化
+#     # 计算外部伤害加成倍率
+#     invasionAuraNum = env.SetNum[CardSet.Invasion.value]
+#     reverseSetNum = env.SetNum[CardSet.Reverse.value] + weapon.getCardSetNum(CardSet.Reverse)
+#     if not env.isMoving:
+#         reverseSetNum = 0   # 逆转套装仅在移动时生效
+#     damage *= 1 + invasionAuraNum * 0.3 + reverseSetNum * 0.3 + (env.sniperComboMulti - 1)  # 光环、逆转和狙击枪连击的伤害加成
+#     # 计算暴击对伤害的放大
+#     uncriticalMultiplier, criticalMultiplier = GetCriticalMultiplier(weapon, enemy)
+#     return damage * uncriticalMultiplier, damage * criticalMultiplier
 
 def VulnerableVirusMultiplier(enemy: EnemyBase) -> float:
     """
@@ -115,6 +138,31 @@ def VulnerableVirusMultiplier(enemy: EnemyBase) -> float:
     if virusCount > 0:
         return 1.75 + 0.25 * virusCount  # 易伤病毒倍率为2，每层叠加病毒额外增加0.25
     return 1.0
+
+def DamageTakenDoT(damage : float, propertyType: PropertyType, enemy: EnemyBase) -> float:
+    """
+    计算持续伤害对敌人造成的实际伤害
+    :param damage: 基础伤害
+    :param propertyType: 伤害类型
+    :param enemy: 敌人对象
+    :return: 实际伤害
+    """
+    if enemy is None:
+        return damage
+    damageTaken = damage
+    # 考虑削甲之后的护甲
+    if propertyType != PropertyType.Cracking:
+        baseArmor = enemy.armor
+        fireCount = enemy.debuff[PropertyType.Fire.value].count()
+        radiationCount = enemy.debuff[PropertyType.Radiation.value].count()
+        useNianSkill = env.useNianSkill
+        NianSkillStrength = env.nianSkillStrength
+        realArmor = WeakArmor(baseArmor, radiationCount, fireCount, useNianSkill, NianSkillStrength)
+        damageTaken = damage * ArmorDamageReduction(realArmor)
+    # 考虑易伤倍率
+    damageTaken *= VulnerableVirusMultiplier(enemy)
+    # 未考虑技能增伤
+    return damageTaken
 
 # 实际对目标造成的伤害
 # 此处计入了：
@@ -139,6 +187,20 @@ def DamageTaken(damage: DamageCollection, enemy : EnemyBase) -> float:
     # 未考虑技能增伤
     return damageTaken
 
+def TriggerElementDebuff(damage : DamageCollection) -> PropertyType:
+    '''
+    根据元素在伤害中的占比触发元素异常
+    '''
+    r = rand()
+    tmpDamage = copy.deepcopy(damage)
+    tmpDamage.np_damage[PropertyType.Physics.value] = 0.0  # 动能伤害不触发元素异常
+    totalElementDamage = tmpDamage.np_damage.sum()  # 计算元素伤害总和
+    currentThreshold = 0.0
+    for i in range(PropertyType.Cold.value, PropertyType.Virus.value + 1):
+        currentThreshold += damage.np_damage[i] / totalElementDamage
+        if r < currentThreshold:
+            return PropertyType(i)
+
 def CalculateMagazineDamage(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
     """
     计算一个弹匣造成的总伤害
@@ -148,7 +210,11 @@ def CalculateMagazineDamage(weapon: WeaponBase, enemy: EnemyBase, env: Environme
     :return: 总伤害
     """
     magazine = weapon.currentProperties.getMagazineSize()
-    uncriticalDamage, criticalDamage = GetWeaponDamage(weapon, enemy, env)
+    baseWeaponDamage = GetBaseWeaponDamage(weapon)
+    externalDamageMultiplier = GetExternalDamageMultiplier(weapon, enemy, env)
+    uncriticalMultiplier, criticalMultiplier = GetCriticalMultiplier(weapon, enemy)
+    uncriticalDamage = baseWeaponDamage * uncriticalMultiplier * externalDamageMultiplier
+    criticalDamage = baseWeaponDamage * criticalMultiplier * externalDamageMultiplier
     uncriticalDamageTaken = DamageTaken(uncriticalDamage, enemy)
     criticalDamageTaken = DamageTaken(criticalDamage, enemy)
     damageTaken = 0
@@ -158,13 +224,37 @@ def CalculateMagazineDamage(weapon: WeaponBase, enemy: EnemyBase, env: Environme
         damageTimes = int(multistrike)
         if rand() < (multistrike - int(multistrike)):
             damageTimes += 1
+        # 这里是实际造成伤害的地方
         for j in range(damageTimes):
             # 计算是否暴击
             criticalChance = weapon.currentProperties.getCriticalChance() / 100.0
-            useDamage = uncriticalDamageTaken
+            useDamageTaken = uncriticalDamageTaken
             if rand() < criticalChance - int(criticalChance):
-                useDamage = criticalDamageTaken
-            damageTaken += useDamage
+                useDamageTaken = criticalDamageTaken
+            damageTaken += useDamageTaken
+            # 造成伤害后，这里是计算是否触发了元素异常的地方
+            if enemy is not None:
+                # 计算元素异常触发几率
+                triggerChance = weapon.currentProperties.getTriggerChance()
+                if rand() < triggerChance / 100.0:
+                    # 触发元素异常
+                    debuffProperty = TriggerElementDebuff(uncriticalDamage)
+                    # 直接添加到敌人身上
+                    enemy.addDebuff(debuffProperty, DebuffBase(debuffProperty, 6))  # 添加元素异常
+                    # 如果是伤害类的Debuff，则其持续伤害总量计入到damageTaken中
+                    DoTMultiplier = 0.0
+                    if debuffProperty == PropertyType.Fire or debuffProperty == PropertyType.Electric or debuffProperty == PropertyType.Gas:
+                        # 热波、赛能、毒气元素异常的持续伤害倍率为 0.5，持续6秒
+                        DoTMultiplier = 0.5
+                    elif debuffProperty == PropertyType.Cracking:
+                        # 裂化的伤害倍率为 0.35，持续6秒
+                        DoTMultiplier = 0.35
+                    if DoTMultiplier > 0:
+                        DoTDamage = baseWeaponDamage.sum() * externalDamageMultiplier * DoTMultiplier
+                        DoTDamageTaken = DamageTakenDoT(DoTDamage, debuffProperty, enemy)
+                        damageTaken += DoTDamageTaken * 6
+
+
     attackSpeed = weapon.currentProperties.getAttackSpeed()
     return damageTaken / (magazine / attackSpeed)  # 弹匣伤害除以弹匣射速得到DPS
 

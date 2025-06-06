@@ -136,6 +136,11 @@ class PropertySnapshot:
 			])
 		return self.damageSnapshot.np_damage.sum()
 	
+	def getTriggerChance(self):
+		'''获取触发几率'''
+		triggerChance = self.datas[PropertyType.TriggerChance].get()
+		return triggerChance
+	
 	def getCriticalChance(self):
 		'''获取暴击率'''
 		criticalChance = self.datas[PropertyType.CriticalChance].get()
@@ -288,10 +293,10 @@ class PropertySnapshot:
 					else:
 						find, property = FindElementDamage(PropertyType.Fire)
 						if find:
-							# 如果有热波，复合成磁暴
+							# 如果有热波，复合成裂化
 							property.value += elementDamageArray[i].get()
 							property.addon = 0.0
-							property.propertyType = PropertyType.Magnetic
+							property.propertyType = PropertyType.Cracking
 							continue
 			elif damageType == PropertyType.Electric:
 				# 赛能
@@ -432,7 +437,7 @@ class CardCommon(CardBase):
 		self.cardSet = cardSet
 
 	def getProperties(self):
-		return [self.property]
+		return [copy.deepcopy(self.property)]
 
 class CardRiven(CardBase):
 	# 紫卡，可拥有多条属性
@@ -441,7 +446,11 @@ class CardRiven(CardBase):
 		self.properties = properties
 
 	def getProperties(self):
-		return self.properties
+		'''返回卡牌的属性列表'''
+		properties = []
+		for property in self.properties:
+				properties.append(copy.deepcopy(property))
+		return properties
 
 # 所有武器的基类
 class WeaponBase:
@@ -589,6 +598,13 @@ class EnemyBase:
 			self.debuff[propertyType.value].setConstantCount(count)
 		else:
 			raise ValueError("Invalid property type for constant debuff")
+		
+	def addDebuff(self, propertyType: PropertyType, debuff: DebuffBase):
+		'''添加元素异常'''
+		if propertyType.isElementDamage():
+			self.debuff[propertyType.value].addDebuff(debuff)
+		else:
+			raise ValueError("Invalid property type for debuff")
 
 	def printEnemyInfo(self):
 		print(f"当前敌人")
