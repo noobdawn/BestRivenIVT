@@ -16,7 +16,7 @@ class TestWeakArmor(unittest.TestCase):
         env.reset()
         env.SetNum[CardSet.Ghost.value] = 2  # 魈鬼之眼套装数量
         env.SetNum[CardSet.Reverse.value] = 2  # 逆转之心套装数量
-        env.invasionAuraNum = 1  # 侵犯光环数量
+        env.SetNum[CardSet.Invasion.value] = 1  # 侵犯光环数量
 
         enemy = EnemyBase("测试敌人", 0, EnemyMaterial.Mechanical)
         enemy.armor = 850
@@ -74,7 +74,6 @@ class TestWeakArmor(unittest.TestCase):
             # 触发一次攻击
             damage, damageTimes, criticalLevel = dps.PullTriggerOnce(arcturus_primer, enemy, env)
         damageTaken = dps.DamageTaken(damage, enemy)
-        # 暴击伤害约等于 600，则测试失败
         self.assertAlmostEqual(damageTaken, 600, delta=2)
         
 unittest.main()

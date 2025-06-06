@@ -6,9 +6,9 @@ import weapons
 
 env.SetNum[CardSet.Ghost.value] = 2  # 魈鬼之眼套装数量
 env.SetNum[CardSet.Reverse.value] = 2  # 逆转之心套装数量
+env.SetNum[CardSet.Invasion.value] = 1  # 侵犯光环数量
 env.useNianSkill = False  # 使用年春秋技能
 env.nianSkillStrength = 200
-env.invasionAuraNum = 1  # 侵犯光环数量
 print("当前环境:")
 env.printEnvironment()
 print("")

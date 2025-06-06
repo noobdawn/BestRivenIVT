@@ -6,6 +6,9 @@ MOD = Property.createCardProperty
 # 该文件记叙了所有的常规卡牌
 
 CARDS_REPOSITORY = {
+    WeaponType.All : [
+        C("魈鬼之眼", MOD(P.Physics, 75), cardSet=CardSet.Ghost),
+    ],
     WeaponType.Rifle : [
         C("私法 速效定装", MOD(P.ReloadTime, -60)),
         C("多重点射", MOD(P.MultiStrike, 90)),
@@ -22,7 +25,6 @@ CARDS_REPOSITORY = {
         C("高温枪管", MOD(P.Fire, 75)),
         C("弹孔注射", MOD(P.Poison, 75)),
         C("致密打击", MOD(P.Physics, 75)),
-        C("魈鬼之眼", MOD(P.Physics, 75), cardSet=CardSet.Ghost),
     ],
 }
 
@@ -38,7 +40,9 @@ def getCardByName(name: str, weaponType: WeaponType = WeaponType.Rifle) -> CardC
     """
     if weaponType not in CARDS_REPOSITORY:
         raise ValueError(f"Unknown weapon type: {weaponType}")
-    
+    for card in CARDS_REPOSITORY[WeaponType.All]:
+        if card.name == name:
+            return card
     for card in CARDS_REPOSITORY[weaponType]:
         if card.name == name:
             return card

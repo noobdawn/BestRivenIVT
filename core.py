@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from enum import Enum, unique
 import numpy as np
 import copy
 from env import env
+from ivtenum import *
 
 # 128个介于0~1之间的随机数
 _SEED = 114514.1919810
@@ -19,108 +19,6 @@ def rand():
 	value = _RANDOM_NUMBERS[_RANDOM_INDEX]
 	_RANDOM_INDEX += 1
 	return value
-
-@unique
-class CardSet(Enum):
-	Unset = 0
-	Reverse = 1 # 逆转，每张卡加30%暴击
-	Ghost = 2 # 鬼卡，元素转动能
-
-@unique
-class EnemyMaterial(Enum):
-	Void = 0
-	Mechanical = 1
-	Biological = 2
-	Energy = 3
-
-@unique
-class PropertyType(Enum):
-	# 伤害类型
-	Physics = 0
-	Cold = 1
-	Electric = 2
-	Fire = 3
-	Poison = 4
-	# 复合伤害类型
-	Cracking = 5
-	Radiation = 6
-	Gas = 7
-	Magnetic = 8
-	Ether = 9
-	Virus = 10
-	# 暴击
-	CriticalChance = 100
-	CriticalDamage = 101
-	# 触发
-	TriggerChance = 102
-	# 攻击速度
-	AttackSpeed = 103
-	# 多重
-	MultiStrike = 1001
-	# 弱点伤害
-	Headshot = 104
-	# 异常持续时间
-	DebuffDuration = 105
-	# 弹容量
-	MagazineSize = 1002
-	# 装填时间
-	ReloadTime = 1003
-	# 穿甲率和穿甲值
-	PenetrationRate = 106
-	PenetrationValue = 107
-	# 武器伤害
-	AllDamage = 108
-	
-	# 是否是远程武器才有的参数
-	def isRanged(self):
-		return self.value > 1000 and self.value < 2000
-	
-	def isBaseElementDamage(self):
-		'''判断是否是基础元素伤害'''
-		# 基础元素伤害是指冰冻、赛能、热波、创生
-		return self.value > 0 and self.value <= 4
-	
-	def isElementDamage(self):
-		'''判断是否是元素伤害'''
-		# 元素伤害是指基础元素伤害和复合元素伤害
-		return self.value > 0 and self.value <= 10
-	
-	def isDamage(self):
-		'''判断是否是伤害类型'''
-		# 伤害类型是指动能伤害和元素伤害
-		return self.value <= 10
-	
-	def toString(self):
-		if self in PropertyTypeToString:
-			return PropertyTypeToString[self]
-		else:
-			raise ValueError(f"Unknown PropertyType: {self}")
-
-PropertyTypeToString = {
-	PropertyType.Physics: "动能",
-	PropertyType.Cold: "冰冻",
-	PropertyType.Electric: "赛能",
-	PropertyType.Fire: "热波",
-	PropertyType.Poison: "创生",
-	PropertyType.Cracking: "裂化",
-	PropertyType.Radiation: "辐射",
-	PropertyType.Gas: "毒气",
-	PropertyType.Magnetic: "磁暴",
-	PropertyType.Ether: "以太",
-	PropertyType.Virus: "病毒",
-	PropertyType.CriticalChance: "暴击率",
-	PropertyType.CriticalDamage: "暴击伤害",
-	PropertyType.TriggerChance: "触发率",
-	PropertyType.AttackSpeed: "攻击速度",
-	PropertyType.MultiStrike: "多重打击",
-	PropertyType.Headshot: "弱点伤害",
-	PropertyType.DebuffDuration: "异常持续时间",
-	PropertyType.MagazineSize: "弹容量",
-	PropertyType.ReloadTime: "装填时间",
-	PropertyType.PenetrationRate: "穿甲率",
-	PropertyType.PenetrationValue: "穿甲值",
-	PropertyType.AllDamage: "武器伤害"
-}
 
 # 伤害的组合体，实际上是一个由11个float组成的Numpy数组
 class DamageCollection:
@@ -174,18 +72,6 @@ class DamageCollection:
 	
 	def __rtruediv__(self, other):
 		return DamageCollection(*other).__truediv__(self)
-
-@unique
-class WeaponType(Enum):
-	Shotgun = 0
-	Rifle = 1
-	MachineGun = 2
-	Laser = 3
-	RocketLauncher = 4
-	Melee = 5
-	Pistol = 6
-	SubmachineGun = 7
-	Sniper = 8
 
 class Property:
 	def __init__(self, propertyType: PropertyType, value: float = 0.0, addon: float = 0.0, from_mod=False):
@@ -529,9 +415,10 @@ class PropertySnapshot:
 
 # 所有卡牌的基类
 class CardBase:
-	def __init__(self, name, weaponType: WeaponType = None):
+	def __init__(self, name, cost : int = 0, weaponType: WeaponType = None):
 		self.name = name
 		self.weaponType = weaponType
+		self.cost = cost
 
 	@abstractmethod
 	def getProperties(self):
@@ -539,8 +426,8 @@ class CardBase:
 
 class CardCommon(CardBase):
 	# 常规卡牌，只有一条属性
-	def __init__(self, name, property: Property, weaponType: WeaponType = None, cardSet: CardSet = CardSet.Unset):
-		super().__init__(name, weaponType)
+	def __init__(self, name, property: Property, cost : int = 0, weaponType: WeaponType = None, cardSet: CardSet = CardSet.Unset):
+		super().__init__(name, cost, weaponType)
 		self.property = property
 		self.cardSet = cardSet
 
@@ -549,8 +436,8 @@ class CardCommon(CardBase):
 
 class CardRiven(CardBase):
 	# 紫卡，可拥有多条属性
-	def __init__(self, name, properties : list, WeaponType: WeaponType = None):
-		super().__init__(name, WeaponType)
+	def __init__(self, name, properties : list, cost : int = 0, WeaponType: WeaponType = None):
+		super().__init__(name, cost, WeaponType)
 		self.properties = properties
 
 	def getProperties(self):
@@ -569,6 +456,7 @@ class WeaponBase:
 		else:
 			self.basename = basename
 		self.isPrime = isPrime
+		self.weaponType = weaponType
 
 	# 安装卡牌
 	def setCardAtIndex(self, index, card : CardBase):
@@ -576,6 +464,12 @@ class WeaponBase:
 			raise IndexError("Index out of range")
 		self.cards[index] = card
 		self._dirty = True  # 设置为需要更新当前属性
+
+	def setCardPermutes(self, cards : list):
+		'''设置卡牌的排列组合'''
+		if (len(cards) == 8):
+			self.cards = cards
+			self._dirty = True
 
 	def removeCardAtIndex(self, index):
 		if index < 0 or index >= 8:

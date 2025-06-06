@@ -97,7 +97,7 @@ def PullTriggerOnce(weapon: WeaponBase, enemy : EnemyBase, env: Environment) -> 
     multistrike = weapon.currentProperties.getMultiStrike()
     damage = copy.deepcopy(weapon.currentProperties.MakeDamage())   # 深拷贝当前属性的伤害，避免修改快照变化
     # todo: 这里还要考虑到像是光环或者逆转卡之类的伤害加成
-    invasionAuraNum = env.invasionAuraNum
+    invasionAuraNum = env.SetNum[CardSet.Invasion.value]
     reverseSetNum = env.SetNum[CardSet.Reverse.value] + weapon.getCardSetNum(CardSet.Reverse)  # 逆转套装数量
     if not env.isMoving:
         reverseSetNum = 0   # 逆转套装仅在移动时生效
