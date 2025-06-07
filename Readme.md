@@ -17,21 +17,21 @@
 
 假设此时我有一张紫卡，属性如下：
 
-![](/assets/目标紫卡.jpg)
+<p align="center"><img src="assets/目标紫卡.jpg" /></p>
 
 水滴的使用者是年春秋，年春秋的配卡如下：
 
-![](/assets/角色MOD.jpg)
+<p align="center"><img src="assets/角色MOD.jpg" /></p>
 
 根据配卡调整环境设置，并且将目标紫卡设置到武器上之后，即可运行脚本。
 
 运行该脚本后计算出的最优DPS和最佳MOD搭配如下：
 
-![](assets/伤害Log.jpg)
+<p align="center"><img src="assets/伤害Log.jpg" /></p>
 
 以下是按照该配卡在训练场的效果（射击时并未移动，角色滑铲是因为截图热键的缘故），此处的计算出的非暴击对应1级暴击、计算出的暴击对应2级暴击，较好地符合了验算结果。
 
-![](/assets/伤害实测.jpg)
+<p align="center"><img src="assets/伤害实测.jpg" /></p>
 
 ## TODO 列表
 - [✅] 直接伤害计算公式
