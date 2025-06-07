@@ -1,4 +1,4 @@
-from core import *
+from core.baseclass import *
 C = CardCommon
 P = PropertyType
 MOD = Property.createCardProperty

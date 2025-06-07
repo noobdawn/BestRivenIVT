@@ -1,4 +1,4 @@
-from ivtenum import CardSet
+from core.ivtenum import CardSet
 
 # 提供DPS测试时候的其他环境变量
 class Environment:

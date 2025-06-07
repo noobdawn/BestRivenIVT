@@ -1,4 +1,4 @@
-from core import *
+from core.baseclass import *
 
 class WaterDrop_Prime(WeaponBase):
     def __init__(self):

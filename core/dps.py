@@ -1,6 +1,6 @@
 # 该文件提供了dps的计算场合
-from env import Environment
-from core import *
+from data.env import Environment
+from core.baseclass import *
 
 np_Adjustment = np.array([
 	[1,		1,		1,		1], 	# Physics
@@ -230,19 +230,20 @@ def CalculateDamageOnce(weapon: WeaponBase, enemy: EnemyBase, env: Environment,
         if forceTrigger == 1 or (forceTrigger == 0 and rand() < triggerChance / 100.0):
             # 触发元素异常
             debuffProperty = TriggerElementDebuff(uncriticalDamage)
-            # 直接添加到敌人身上
-            enemy.addDebuff(debuffProperty, DebuffBase(6))  # 添加元素异常
-            # 如果是伤害类的Debuff，则其持续伤害总量计入到damageTaken中
-            DoTMultiplier = 0.0
-            if debuffProperty == PropertyType.Fire or debuffProperty == PropertyType.Electric or debuffProperty == PropertyType.Gas:
-                # 热波、赛能、毒气元素异常的持续伤害倍率为 0.5，持续6秒
-                DoTMultiplier = 0.5
-            elif debuffProperty == PropertyType.Cracking:
-                # 裂化的伤害倍率为 0.35，持续6秒
-                DoTMultiplier = 0.35
-            if DoTMultiplier > 0:
-                DoTDamage = baseWeaponDamage.sum() * externalDamageMultiplier * DoTMultiplier
-                doTDamageTaken = DamageTakenDoT(DoTDamage, debuffProperty, enemy) * 6
+            if debuffProperty is not None:
+                # 直接添加到敌人身上
+                enemy.addDebuff(debuffProperty, DebuffBase(6))  # 添加元素异常
+                # 如果是伤害类的Debuff，则其持续伤害总量计入到damageTaken中
+                DoTMultiplier = 0.0
+                if debuffProperty == PropertyType.Fire or debuffProperty == PropertyType.Electric or debuffProperty == PropertyType.Gas:
+                    # 热波、赛能、毒气元素异常的持续伤害倍率为 0.5，持续6秒
+                    DoTMultiplier = 0.5
+                elif debuffProperty == PropertyType.Cracking:
+                    # 裂化的伤害倍率为 0.35，持续6秒
+                    DoTMultiplier = 0.35
+                if DoTMultiplier > 0:
+                    DoTDamage = baseWeaponDamage.sum() * externalDamageMultiplier * DoTMultiplier
+                    doTDamageTaken = DamageTakenDoT(DoTDamage, debuffProperty, enemy) * 6
 
     return directDamageTaken + doTDamageTaken  # 返回直接伤害和持续伤害的总和
 

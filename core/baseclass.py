@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 import numpy as np
 import copy
-from env import env
-from ivtenum import *
+from data.env import env
+from core.ivtenum import *
 
 # 128个介于0~1之间的随机数
 _SEED = 114514.1919810
