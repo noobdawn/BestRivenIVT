@@ -454,8 +454,8 @@ class CardCommon(CardBase):
 
 class CardRiven(CardBase):
 	# 紫卡，可拥有多条属性
-	def __init__(self, name, properties : list, cost : int = 0, WeaponType: WeaponType = None):
-		super().__init__(name, cost, WeaponType)
+	def __init__(self, name, properties : list, cost : int = 0, weaponType: WeaponType = None):
+		super().__init__(name, cost, weaponType)
 		self.properties = properties
 
 	def getProperties(self):

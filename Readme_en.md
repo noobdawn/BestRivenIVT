@@ -11,6 +11,28 @@ This project is designed for the game 'Into the Void' to provide an automated mo
 - numpy
 - unittest
 
+## Usage
+
+Refer to `seek.py` for implementation details.
+
+Assume we have a Riven Mod with the following attributes:
+
+![](/assets/目标紫卡.jpg)
+
+The user of waterdrop is Nian Chunqiu, whose mod configuration is as follows:
+
+![](/assets/角色MOD.jpg)
+
+After adjusting environment settings based on the mod configuration and equipping the target Riven Mod on the weapon, execute the script.
+
+The optimal DPS and best MOD combination calculated by the script are shown below:
+
+![](assets/伤害Log.jpg)
+
+Below are the actual effects observed in the training ground (character remained stationary during shooting; sliding motion was caused by screenshot hotkey). The calculated non-critical hits correspond to Tier 1 criticals, while critical hits correspond to Tier 2 criticals, demonstrating close alignment with the result.
+
+![](/assets/伤害实测.jpg)
+
 ## TODO List
 - [✅] Direct damage calculation formula
 - [✅] DoT damage calculation formula
