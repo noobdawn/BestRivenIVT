@@ -1,7 +1,3 @@
----
-typora-root-url: ./
----
-
 # BestRivenIVT: 《驱入虚空》自动化配卡工具
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
