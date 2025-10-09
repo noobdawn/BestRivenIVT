@@ -43,4 +43,18 @@ class FocusLamp(WeaponBase):
         Property(PropertyType.DebuffDuration, 100.0),
         Property(PropertyType.MagazineSize, 35),
         Property(PropertyType.ReloadTime, 2),
-    ]), WeaponType.Rifle, "聚焦矿灯", True)
+    ]), WeaponType.Rifle, "聚焦矿灯", False)
+        
+class IceFall_Prime(WeaponBase):
+    def __init__(self):
+        super().__init__("私法 冰封瀑", PropertySnapshot([
+        Property(PropertyType.Cold, 18.0),
+        Property(PropertyType.CriticalChance, 24.0),
+        Property(PropertyType.CriticalDamage, 170.0),
+        Property(PropertyType.MultiStrike, 8.0),
+        Property(PropertyType.TriggerChance, 7.0),
+        Property(PropertyType.AttackSpeed, 3.5),
+        Property(PropertyType.DebuffDuration, 100.0),
+        Property(PropertyType.MagazineSize, 15),
+        Property(PropertyType.ReloadTime, 2.2),
+    ]), WeaponType.Shotgun, "冰封瀑", True)

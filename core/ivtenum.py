@@ -12,6 +12,7 @@ class CardSet(Enum):
 	Ghost = 2		# 鬼卡，元素转动能
 	Invasion = 3	# 侵犯光环，增加30%伤害
 	Snake = 4		# 蛇年活动卡
+	Bless = 5		# 天佑，释放技能转换40%为护盾
 
 	def toString(self):
 		if self in CardSetToString:
@@ -86,7 +87,6 @@ class PropertyType(Enum):
 	AllDamage = 22
 	# 最大枚举
 	_Max = 23
-	_Damage = 11
 	
 	def isBaseElementDamage(self):
 		'''判断是否是基础元素伤害'''

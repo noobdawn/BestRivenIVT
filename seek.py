@@ -8,21 +8,22 @@ import core.dps as dps
 import time
 
 env.reset()
-env.SetNum[CardSet.Invasion.value] = 1 # 侵犯光环数量：1
-env.SetNum[CardSet.Reverse.value] = 1  # 逆转卡数量：2
-env.useNianSkill = True  # 使用年技能
+env.SetNum[CardSet.Invasion.value] = 2 # 侵犯光环数量：1
+env.SetNum[CardSet.Reverse.value] = 0  # 逆转卡数量：2
+env.useNianSkill = False  # 使用年技能
 env.nianSkillStrength = 200
 
 enemy = EnemyBase("测试敌人", 120, EnemyMaterial.Mechanical)
 enemy.armor = 850
 # enemy.setConstantDebuff(PropertyType.Virus, 10) # 挂10层病毒
 
-weapon = weapons.WaterDrop_Prime()
-weapon.setCardAtIndex(0, CardRiven("水滴 精密(裂罅)", 
-                                   [
-                                        Property(PropertyType.CriticalChance, 0, 112),
-                                        Property(PropertyType.CriticalDamage, 0, 97),
-                                   ], cost=16, weaponType=WeaponType.Rifle))
+# weapon = weapons.WaterDrop_Prime()
+# weapon.setCardAtIndex(0, CardRiven("水滴 精密(裂罅)", 
+#                                    [
+#                                         Property(PropertyType.CriticalChance, 0, 112),
+#                                         Property(PropertyType.CriticalDamage, 0, 97),
+#                                    ], cost=16, weaponType=WeaponType.Rifle))
+weapon = weapons.IceFall_Prime()
 weapon.updateCurrentProperties()
 
 cards_to_permute, cards_to_combine = getAllAvailableCards(weapon)

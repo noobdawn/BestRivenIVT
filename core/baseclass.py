@@ -443,14 +443,17 @@ class CardBase:
 		pass
 
 class CardCommon(CardBase):
-	# 常规卡牌，只有一条属性
-	def __init__(self, name, property: Property, cost : int = 0, weaponType: WeaponType = None, cardSet: CardSet = CardSet.Unset):
+	def __init__(self, name, properties : list, cost : int = 0, weaponType: WeaponType = None, cardSet: CardSet = CardSet.Unset):
 		super().__init__(name, cost, weaponType)
-		self.property = property
+		self.properties = properties
 		self.cardSet = cardSet
 
 	def getProperties(self):
-		return [copy.deepcopy(self.property)]
+		'''返回卡牌的属性列表'''
+		properties = []
+		for property in self.properties:
+				properties.append(copy.deepcopy(property))
+		return properties
 
 class CardRiven(CardBase):
 	# 紫卡，可拥有多条属性
