@@ -25,7 +25,8 @@ CardSetToString = {
 	CardSet.Reverse: "逆转系列",
 	CardSet.Ghost: "魈鬼系列",
 	CardSet.Invasion: "侵犯光环",
-	CardSet.Snake: "蛇年活动卡"
+	CardSet.Snake: "蛇年活动卡",
+	CardSet.Bless: "天佑系列"
 }
 
 @unique
@@ -137,14 +138,228 @@ PropertyTypeToString = {
 }
 
 @unique
+class CharacterPropertyType(Enum):
+	Health = 0
+	Shield = 1
+	Armor = 2
+	Energy = 3
+	DamageReduction = 4
+	# 技能相关属性
+	SkillStrength = 5
+	SkillRange = 6
+	SkillCost = 7
+	SkillDuration = 8
+	# 其他
+	MoveSpeed = 9
+	ShieldRechargeRate = 10
+	ShieldRechargeDelay = 11
+
+	def toString(self):
+		if self in CharacterPropertyTypeToString:
+			return CharacterPropertyTypeToString[self]
+		else:
+			raise ValueError(f"Unknown CharacterPropertyType: {self}")
+		
+CharacterPropertyTypeToString = {
+	CharacterPropertyType.Health: "生命值",
+	CharacterPropertyType.Shield: "护盾值",
+	CharacterPropertyType.Armor: "装甲值",
+	CharacterPropertyType.Energy: "能量值",
+	CharacterPropertyType.DamageReduction: "伤害减免",
+	CharacterPropertyType.SkillStrength: "技能强度",
+	CharacterPropertyType.SkillRange: "技能范围",
+	CharacterPropertyType.SkillCost: "技能消耗",
+	CharacterPropertyType.SkillDuration: "技能持续时间",
+	CharacterPropertyType.MoveSpeed: "移动速度",
+	CharacterPropertyType.ShieldRechargeRate: "护盾充能速率",
+	CharacterPropertyType.ShieldRechargeDelay: "护盾充能延迟"
+}
+
+@unique
 class WeaponType(Enum):
 	All = 0
 	Rifle = 1
-	MachineGun = 2
-	Laser = 3
-	RocketLauncher = 4
-	Melee = 5
-	Pistol = 6
-	SubmachineGun = 7
-	Sniper = 8
-	Shotgun = 9
+	Shotgun = 2
+	RocketLauncher = 3
+	Melee = 4
+	Pistol = 5
+
+	def toString(self):
+		if self in WeaponTypeToString:
+			return WeaponTypeToString[self]
+		else:
+			raise ValueError(f"Unknown WeaponType: {self}")
+
+WeaponTypeToString = {
+	WeaponType.All: "所有武器",
+	WeaponType.Rifle: "步枪",
+	WeaponType.RocketLauncher: "发射器",
+	WeaponType.Melee: "近战武器",
+	WeaponType.Pistol: "手枪",
+	WeaponType.Shotgun: "霰弹枪"
+}
+
+@unique
+class SubWeaponType(Enum):
+	Null = 0
+	AssaultRifle = 1 # 突击步枪
+	SniperRifle = 2 # 狙击枪
+	MachineGun = 3 # 机枪
+	LaserGun = 4 # 激光枪
+	Shotgun = 5 # 霰弹枪
+	RocketLauncher = 6 # 炮弹发射器
+	Bow = 7 # 弓
+	Kitana = 8 # 刀
+	AutoPistol = 9 # 自动手枪
+	MicroSubmachineGun = 10 # 微型冲锋枪
+
+	def toString(self):
+		if self in SubWeaponTypeToString:
+			return SubWeaponTypeToString[self]
+		else:
+			raise ValueError(f"Unknown SubWeaponType: {self}")
+
+SubWeaponTypeToString = {
+	SubWeaponType.Null: "无",
+	SubWeaponType.AssaultRifle: "突击步枪",
+	SubWeaponType.SniperRifle: "狙击枪",
+	SubWeaponType.MachineGun: "机枪",
+	SubWeaponType.LaserGun: "激光枪",
+	SubWeaponType.Shotgun: "霰弹枪",
+	SubWeaponType.RocketLauncher: "炮弹发射器",
+	SubWeaponType.Bow: "弓",
+	SubWeaponType.Kitana: "刀",
+	SubWeaponType.AutoPistol: "自动手枪",
+	SubWeaponType.MicroSubmachineGun: "微型冲锋枪"
+}
+
+WeaponTypeToSubTypes = {
+	WeaponType.Rifle: [SubWeaponType.AssaultRifle, SubWeaponType.SniperRifle, SubWeaponType.MachineGun, SubWeaponType.LaserGun],
+	WeaponType.Shotgun: [SubWeaponType.Shotgun],
+	WeaponType.RocketLauncher: [SubWeaponType.RocketLauncher, SubWeaponType.Bow],
+	WeaponType.Melee: [SubWeaponType.Kitana],
+	WeaponType.Pistol: [SubWeaponType.AutoPistol, SubWeaponType.MicroSubmachineGun]
+}
+
+@unique
+class Hero(Enum):
+	Nianchunqiu = 0 # 年春秋
+	Taogongnuonuo = 1 # 桃宫诺诺
+	Qiaoanna = 2 # 乔安娜·西奥斯
+	Zhuli = 3 # 朱莉·摩恩
+	Bickmen = 4 # 比克曼
+	Pamera = 5 # 帕梅拉
+	Shaokailin = 6 # 邵凯琳
+	Mitera = 7 # 密特拉
+	Lihuo = 8 # 离火
+	Aier = 9 # 爱尔·斯宾塞
+	Kirov = 10 # 基洛夫·瑞泊汀
+	Shana = 11 # 莎娜
+
+	def toString(self):
+		if self in HeroToString:
+			return HeroToString[self]
+		else:
+			raise ValueError(f"Unknown Hero: {self}")
+
+HeroToString = {
+	Hero.Nianchunqiu: "年春秋",
+	Hero.Taogongnuonuo: "桃宫诺诺",
+	Hero.Qiaoanna: "乔安娜·西奥斯",
+	Hero.Zhuli: "朱莉·摩恩",
+	Hero.Bickmen: "比克曼",
+	Hero.Pamera: "帕梅拉",
+	Hero.Shaokailin: "邵凯琳",
+	Hero.Mitera: "密特拉",
+	Hero.Lihuo: "离火",
+	Hero.Aier: "爱尔·斯宾塞",
+	Hero.Kirov: "基洛夫·瑞泊汀",
+	Hero.Shana: "莎娜"
+}
+
+@unique
+class ArmorSet(Enum):
+	Shouzhanqibing = 0 # 首战奇兵
+	Guangyin = 1 # 光阴
+	Shouzhanqibing_Prime = 2 # 私法 首战奇兵
+	Lvyechongming = 3 # 绿野虫鸣
+	Lingtaifeixing = 4 # 灵态飞行
+	Lingtaifeixing_Prime = 5 # 私法 灵态飞行
+	Yinniaoguilin = 6 # 银鸟归林
+	Guangyizhuangjia = 7 # 光翼装甲
+	Qihuashengfang = 8 # 绮花盛放
+	Bikemanxiansheng = 9 # 比克曼先生
+	Pameiladeyixiaobu = 10 # 帕梅拉的一小步
+	Dafuwengduoji = 11 # 大富翁多吉
+	Jinpaizhiqinguan = 12 # 金牌执勤官
+	Jinlinlieshou = 13 # 锦麟猎手
+	Zhuanlunluohan = 14 # 转轮罗汉
+	Guluan = 15 # 孤鸾
+	Jianxishizhe = 16 # 间隙使者
+	Zhenbaozhuanjia = 17 # 镇暴专家
+	Kunshou = 18 # 困兽
+	Kunshou_Prime = 19 # 私法 困兽
+
+	def toString(self):
+		if self in ArmorSetToString:
+			return ArmorSetToString[self]
+		else:
+			raise ValueError(f"Unknown ArmorSet: {self}")
+		
+	def isPrime(self) -> bool:
+		'''判断是否是私法套装'''
+		return self in [ArmorSet.Shouzhanqibing_Prime, ArmorSet.Lingtaifeixing_Prime, ArmorSet.Kunshou_Prime]
+
+ArmorSetToString = {
+	ArmorSet.Shouzhanqibing: "首战奇兵",
+	ArmorSet.Guangyin: "光阴",
+	ArmorSet.Shouzhanqibing_Prime: "私法 首战奇兵",
+	ArmorSet.Lvyechongming: "绿野虫鸣",
+	ArmorSet.Lingtaifeixing: "灵态飞行",
+	ArmorSet.Lingtaifeixing_Prime: "私法 灵态飞行",
+	ArmorSet.Yinniaoguilin: "银鸟归林",
+	ArmorSet.Guangyizhuangjia: "光翼装甲",
+	ArmorSet.Qihuashengfang: "绮花盛放",
+	ArmorSet.Bikemanxiansheng: "比克曼先生",
+	ArmorSet.Pameiladeyixiaobu: "帕梅拉的一小步",
+	ArmorSet.Dafuwengduoji: "大富翁多吉",
+	ArmorSet.Jinpaizhiqinguan: "金牌执勤官",
+	ArmorSet.Jinlinlieshou: "锦麟猎手",
+	ArmorSet.Zhuanlunluohan: "转轮罗汉",
+	ArmorSet.Guluan: "孤鸾",
+	ArmorSet.Jianxishizhe: "间隙使者",
+	ArmorSet.Zhenbaozhuanjia: "镇暴专家",
+	ArmorSet.Kunshou: "困兽",
+	ArmorSet.Kunshou_Prime: "私法 困兽"
+}
+
+HeroToArmorSet = {
+	Hero.Nianchunqiu: [ArmorSet.Shouzhanqibing, ArmorSet.Guangyin, ArmorSet.Shouzhanqibing_Prime],
+	Hero.Taogongnuonuo: [ArmorSet.Lvyechongming, ArmorSet.Lingtaifeixing, ArmorSet.Lingtaifeixing_Prime],
+	Hero.Qiaoanna: [ArmorSet.Yinniaoguilin],
+	Hero.Zhuli: [ArmorSet.Guangyizhuangjia, ArmorSet.Qihuashengfang],
+	Hero.Bickmen: [ArmorSet.Bikemanxiansheng],
+	Hero.Pamera: [ArmorSet.Pameiladeyixiaobu, ArmorSet.Dafuwengduoji],
+	Hero.Shaokailin: [ArmorSet.Jinpaizhiqinguan, ArmorSet.Jinlinlieshou],
+	Hero.Mitera: [ArmorSet.Zhuanlunluohan],
+	Hero.Lihuo: [ArmorSet.Guluan],
+	Hero.Aier: [ArmorSet.Jianxishizhe],
+	Hero.Kirov: [ArmorSet.Zhenbaozhuanjia],
+	Hero.Shana: [ArmorSet.Kunshou, ArmorSet.Kunshou_Prime]
+}
+
+@unique
+class SkillFlag(Enum):
+	Qianyinfeidan = 0 # 牵引飞弹
+	Dianlizhenya = 1 # 电离镇压
+
+	def toString(self):
+		if self in SkillFlagToString:
+			return SkillFlagToString[self]
+		else:
+			raise ValueError(f"Unknown SkillFlag: {self}")
+
+SkillFlagToString = {
+	SkillFlag.Qianyinfeidan: "牵引飞弹",
+	SkillFlag.Dianlizhenya: "电离镇压"
+}

@@ -1,8 +1,7 @@
 # 这个文件负责从武器获取所有可能的卡牌排列
 import data.cards as cards
 import core.baseclass as baseclass
-import core.dps
-from data.env import env, Environment
+from data.env import Context
 from itertools import combinations, permutations
 
 def isPermutable(card : baseclass.CardBase) -> bool:
@@ -17,83 +16,130 @@ def isPermutable(card : baseclass.CardBase) -> bool:
             return True
     return False
 
-def getAllAvailableCards(weapon : baseclass.WeaponBase) -> tuple:
+
+def getAllCards(weapon : baseclass.WeaponBase) -> list:
+    """
+    获取武器上所有可能的卡牌
+    :param weapon: 武器对象
+    :return: 返回武器上所有可能的卡牌列表
+    """
+    all_cards = []
+    all_cards.extend(cards.CARDS_REPOSITORY[baseclass.WeaponType.All])
+    all_cards.extend(cards.CARDS_REPOSITORY[weapon.weaponType])
+    return all_cards
+
+def getAllAvailableCards(ctx : Context) -> tuple:
     """
     获取武器上所有可能的卡牌排列
     :param weapon: 武器对象
     :return: 返回用于计算排列和用于计算组合的卡牌元组
     """
     # 获取所有可用的卡牌
-    all_cards = []
-    all_cards.extend(cards.CARDS_REPOSITORY[baseclass.WeaponType.All])
-    all_cards.extend(cards.CARDS_REPOSITORY[weapon.weaponType])
+    all_cards = getAllCards(ctx.weapon)
 
     # 带元素伤害类的卡牌是用于计算排列的，其他的计算组合即可
-    cards_to_permute = []
-    cards_to_combine = []
-    for card in all_cards:
-        if isPermutable(card):
-            cards_to_permute.append(card)
-        else:
-            cards_to_combine.append(card)
+    cards_can_permute = []
+    cards_can_combine = []
+    cards_must_permute = []
+    cards_must_combine = []
 
     # 先获取武器上已有的卡牌
-    cards_in_weapon = []
-    for card in weapon.cards:
+    for card in ctx.weapon.cards:
         if card is not None:
-            if card in cards_to_permute:
-                cards_to_permute.remove(card)
-            elif card in cards_to_combine:
-                cards_to_combine.remove(card)
+            if isPermutable(card):
+                cards_must_permute.append(card)
             else:
-                if isinstance(card, cards.CardRiven):
-                    if isPermutable(card):
-                        cards_to_permute.append(card)
-                    else:
-                        cards_to_combine.append(card)
+                cards_must_combine.append(card)
+                
+    for card in all_cards:
+        if card in ctx.weapon.cards:
+            continue
+        if isPermutable(card):
+            cards_can_permute.append(card)
+        else:
+            cards_can_combine.append(card)
 
-    return cards_to_permute, cards_to_combine
+    return cards_can_permute, cards_can_combine, cards_must_permute, cards_must_combine
 
-
-# 剪枝
-def Pruning(permutations : list, env : Environment) -> None:
-    """
-    对卡牌排列进行剪枝
-    :param permutations: 卡牌排列列表
-    """
-    # 如果环境中携带了魈鬼系列卡牌，则所有排列中都必须包含魈鬼之眼
-    if env.SetNum[baseclass.CardSet.Ghost.value] > 0:
-        for i in range(len(permutations) - 1, -1, -1):
-            if not any(isinstance(card, baseclass.CardCommon) and card.cardSet == baseclass.CardSet.Ghost for card in permutations[i]):
-                del permutations[i]
-    else:
-        # 如果没有魈鬼之眼，则所有排列中都不能包含魈鬼之眼
-        for i in range(len(permutations) - 1, -1, -1):
-            if any(isinstance(card, baseclass.CardCommon) and card.cardSet == baseclass.CardSet.Ghost for card in permutations[i]):
-                del permutations[i]
-
-def getAllPermutations(cards_to_permute : list, cards_to_combine : list, max_slots: int) -> list:
+def _getAllPermutations(cards_can_permute : list, cards_can_combine : list, cards_must_permute : list, cards_must_combine : list, max_slots: int) -> list:
     """
     获取所有可能的卡牌排列和组合
-    :param cards_to_permute: 可进行排列的卡牌列表
-    :param cards_to_combine: 可进行组合的卡牌列表
+    :param cards_can_permute: 可用于排列的卡牌列表
+    :param cards_can_combine: 可用于组合的卡牌列表
+    :param cards_must_permute: 必须用于排列的卡牌列表
+    :param cards_must_combine: 必须用于组合的卡牌列表
     :param max_slots: 最大卡槽数量
     :return: 所有长度为max_slots的卡牌排列
     """
     results = []
+    
+    must_permute_count = len(cards_must_permute)
+    must_combine_count = len(cards_must_combine)
+    can_permute_count = len(cards_can_permute)
+    can_combine_count = len(cards_can_combine)
+    total_must_count = must_permute_count + must_combine_count
+    total_can_count = can_permute_count + can_combine_count
+    total_count = total_must_count + total_can_count
+    if total_count < max_slots:
+        max_slots = total_count
+    if total_must_count > max_slots:
+        raise ValueError("必须使用的卡牌数量超过了最大卡槽数量")
+    
+    rem_slots = max_slots - total_must_count
 
-    for permute_len in range(0, max_slots + 1):
-        if permute_len > len(cards_to_permute):
-            break
-        combine_len = max_slots - permute_len
-        if combine_len > len(cards_to_combine):
+    # 迭代所有可能的来自 can_permute 和 can_combine 的卡牌数量组合
+    for i in range(rem_slots + 1):
+        # i 是从 cards_can_permute 中选择的卡牌数量
+        # j 是从 cards_can_combine 中选择的卡牌数量
+        j = rem_slots - i
+
+        if i > can_permute_count or j > can_combine_count:
             continue
-        for permute in permutations(cards_to_permute, permute_len):
-            for combine in combinations(cards_to_combine, combine_len):
-                result = list(permute) + list(combine)
-                results.append(result)
+
+        # 从 can_permute 中选择 i 张卡牌的所有组合
+        for permute_choice in combinations(cards_can_permute, i):
+            # 从 can_combine 中选择 j 张卡牌的所有组合
+            for combine_choice in combinations(cards_can_combine, j):
+                
+                # 准备用于排列的卡牌列表
+                cards_to_permute = cards_must_permute + list(permute_choice)
+                # 准备无需排列的卡牌列表
+                cards_to_combine_final = cards_must_combine + list(combine_choice)
+
+                # 生成 cards_to_permute 的所有排列
+                for p in permutations(cards_to_permute):
+                    results.append(cards_to_combine_final + list(p))
 
     return results
+
+def getAllPermutations(ctx : Context, max_slots: int) -> list:
+    """
+    获取所有可能的卡牌排列和组合
+    :param ctx: 当前环境上下文
+    :param max_slots: 最大卡槽数量
+    :return: 所有长度为max_slots的卡牌排列
+    """
+    weapon = ctx.weapon
+    cards_can_permute, cards_can_combine, cards_must_permute, cards_must_combine = getAllAvailableCards(ctx)
+    # 在计算排列之前，略微剪枝保证效率
+    all_cards = getAllCards(weapon)
+    # 如果有魈鬼系列卡牌，则所有组合中都必须包含魈鬼系列卡牌
+    # 反之，如果没有魈鬼系列卡牌，则所有组合中都不能包含魈鬼系列卡牌
+    ghost_cards = [card for card in all_cards if isinstance(card, baseclass.CardCommon) and card.cardSet == baseclass.CardSet.Ghost]
+    if ctx.hasCardSet(baseclass.CardSet.Ghost):
+        for ghost_card in ghost_cards:
+            if ghost_card not in cards_must_combine:
+                cards_must_combine.append(ghost_card)
+            if ghost_card in cards_can_combine:
+                cards_can_combine.remove(ghost_card)
+    else:
+        for ghost_card in ghost_cards:
+            if ghost_card in cards_can_combine:
+                cards_can_combine.remove(ghost_card)
+            if ghost_card in cards_must_combine:
+                cards_must_combine.remove(ghost_card)        
+
+    return _getAllPermutations(cards_can_permute, cards_can_combine, cards_must_permute, cards_must_combine, max_slots)
 
 # cards_to_permute, cards_to_combine = getAllAvailableCards(weapon)
 # all_permutations = getAllPermutations(cards_to_permute, cards_to_combine, 8)

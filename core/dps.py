@@ -1,5 +1,5 @@
 # 该文件提供了dps的计算场合
-from data.env import Environment
+from data.env import Context
 from core.baseclass import *
 
 np_Adjustment = np.array([
@@ -56,18 +56,19 @@ def WeakArmor(armor: float, radiationCount: int = 0, fireCount: int = 0, useNian
         radiationWeak = min(radiationWeak, 0.7)         # 最大削弱比例为70%
     return max(armor * (1 - skillWeak) * (1 - fireWeak) * (1 - radiationWeak), 0)
 
-def GetCriticalMultiplier(weapon: WeaponBase, enemy: EnemyBase) -> tuple:
+def GetCriticalMultiplier(ctx : Context) -> tuple:
     '''
     计算暴击倍率
-    :param weapon: 武器对象
-    :param enemy: 敌人对象
+    :param ctx : 当前环境上下文
     :return: (未暴击伤害倍率，暴击伤害倍率）
     '''
+    weapon = ctx.weapon
+    enemy = ctx.target
     criticalChance = weapon.currentProperties.getCriticalChance()
     criticalDamage = weapon.currentProperties.getCriticalDamage()
     coldCount = 0
     if enemy is not None:
-        coldCount = enemy.debuff[PropertyType.Cold.value].count()
+        coldCount = enemy.getElementDebuff(PropertyType.Cold)
     coldCriticalDamage = 0
     if coldCount > 0:
         coldCriticalDamage = 0.1 + (coldCount - 1) * 0.05  # 冰冻debuff增加敌人受到的暴击伤害10%，每层叠加冰冻敌人受到的暴击伤害额外增加5%
@@ -90,19 +91,19 @@ def GetBaseWeaponDamage(weapon: WeaponBase) -> DamageCollection:
     # 获取武器当前属性的伤害快照
     return copy.deepcopy(weapon.currentProperties.MakeDamage())
 
-def GetExternalDamageMultiplier(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
+def GetExternalDamageMultiplier(ctx : Context) -> float:
     '''
     获取外部伤害加成倍率
-    :param weapon: 武器对象
-    :param enemy: 敌人对象
-    :param env: 环境变量
+    :param ctx: 当前环境上下文
     :return: 外部伤害加成倍率
     '''
-    invasionAuraNum = env.SetNum[CardSet.Invasion.value]
-    reverseSetNum = env.SetNum[CardSet.Reverse.value] + weapon.getCardSetNum(CardSet.Reverse)
-    if not env.isMoving:
+    weapon = ctx.weapon
+    enemy = ctx.target
+    invasionAuraNum = ctx.getCardSetNum(CardSet.Invasion)
+    reverseSetNum = weapon.getCardSetNum(CardSet.Reverse) + ctx.getCardSetNum(CardSet.Reverse)
+    if not ctx.IsMoving():
         reverseSetNum = 0   # 逆转套装仅在移动时生效
-    return 1 + invasionAuraNum * 0.3 + reverseSetNum * 0.3 + (env.sniperComboMulti - 1)  # 光环、逆转和狙击枪连击的伤害加成
+    return 1 + invasionAuraNum * 0.3 + reverseSetNum * 0.3 + (ctx.GetSniperComboMulti() - 1)  # 光环、逆转和狙击枪连击的伤害加成
 
 # # 获得武器伤害
 # # 此处计入了：
@@ -128,39 +129,38 @@ def GetExternalDamageMultiplier(weapon: WeaponBase, enemy: EnemyBase, env: Envir
 #     uncriticalMultiplier, criticalMultiplier = GetCriticalMultiplier(weapon, enemy)
 #     return damage * uncriticalMultiplier, damage * criticalMultiplier
 
-def VulnerableVirusMultiplier(enemy: EnemyBase) -> float:
+def VulnerableVirusMultiplier(ctx : Context) -> float:
     """
     计算易伤病毒倍率
-    :param enemy: 敌人对象
+    :param ctx: 当前环境上下文
     :return: 易伤病毒倍率
     """
-    virusCount = enemy.debuff[PropertyType.Virus.value].count()
+    enemy = ctx.target
+    virusCount = enemy.getElementDebuff(PropertyType.Virus)
     if virusCount > 0:
         return 1.75 + 0.25 * virusCount  # 易伤病毒倍率为2，每层叠加病毒额外增加0.25
     return 1.0
 
-def DamageTakenDoT(damage : float, propertyType: PropertyType, enemy: EnemyBase) -> float:
+def DamageTakenDoT(damage : float, propertyType: PropertyType, ctx : Context) -> float:
     """
     计算持续伤害对敌人造成的实际伤害
     :param damage: 基础伤害
     :param propertyType: 伤害类型
-    :param enemy: 敌人对象
+    :param ctx: 当前环境上下文
     :return: 实际伤害
     """
-    if enemy is None:
-        return damage
     damageTaken = damage
     # 考虑削甲之后的护甲
     if propertyType != PropertyType.Cracking:
-        baseArmor = enemy.armor
-        fireCount = enemy.debuff[PropertyType.Fire.value].count()
-        radiationCount = enemy.debuff[PropertyType.Radiation.value].count()
-        useNianSkill = env.useNianSkill
-        NianSkillStrength = env.nianSkillStrength
+        baseArmor = ctx.target.getArmor()
+        fireCount = ctx.target.getElementDebuff(PropertyType.Fire)
+        radiationCount = ctx.target.getElementDebuff(PropertyType.Radiation)
+        useNianSkill = ctx.target.getSkillDebuff(SkillFlag.Qianyinfeidan)
+        NianSkillStrength = ctx.character.armor.getProperty(CharacterPropertyType.SkillStrength)
         realArmor = WeakArmor(baseArmor, radiationCount, fireCount, useNianSkill, NianSkillStrength)
         damageTaken = damage * ArmorDamageReduction(realArmor)
     # 考虑易伤倍率
-    damageTaken *= VulnerableVirusMultiplier(enemy)
+    damageTaken *= VulnerableVirusMultiplier(ctx)
     # 未考虑技能增伤
     return damageTaken
 
@@ -169,21 +169,20 @@ def DamageTakenDoT(damage : float, propertyType: PropertyType, enemy: EnemyBase)
 # - 伤害克制关系
 # - 护甲减伤
 # - 易伤倍率，todo：目前只考虑了病毒
-def DamageTaken(damage: DamageCollection, enemy : EnemyBase) -> float:
+def DamageTaken(damage: DamageCollection, ctx : Context) -> float:
      # 如果没有敌人，则直接返回伤害总和作为参考
-    if enemy is None:
-        return damage.sum()
+    enemy = ctx.target
     damageTaken = DamageTakenByMaterial(damage, enemy.material).sum()
     # 考虑削甲之后的护甲
     baseArmor = enemy.armor
-    fireCount = enemy.debuff[PropertyType.Fire.value].count()
-    radiationCount = enemy.debuff[PropertyType.Radiation.value].count()
-    useNianSkill = env.useNianSkill
-    NianSkillStrength = env.nianSkillStrength
+    fireCount = enemy.getElementDebuff(PropertyType.Fire)
+    radiationCount = enemy.getElementDebuff(PropertyType.Radiation)
+    useNianSkill = enemy.getSkillDebuff(SkillFlag.Qianyinfeidan)
+    NianSkillStrength = ctx.character.armor.getProperty(CharacterPropertyType.SkillStrength)
     realArmor = WeakArmor(baseArmor, radiationCount, fireCount, useNianSkill, NianSkillStrength)
     damageTaken = damageTaken * ArmorDamageReduction(realArmor)
     # 考虑易伤倍率
-    damageTaken *= VulnerableVirusMultiplier(enemy)
+    damageTaken *= VulnerableVirusMultiplier(ctx)
     # 未考虑技能增伤
     return damageTaken
 
@@ -201,21 +200,20 @@ def TriggerElementDebuff(damage : DamageCollection) -> PropertyType:
         if r < currentThreshold:
             return PropertyType(i)
         
-def CalculateDamageOnce(weapon: WeaponBase, enemy: EnemyBase, env: Environment,
-                        baseWeaponDamage: DamageCollection = None,
-                        forceCritical : int = 0, forceTrigger : int = 0) -> float:
-                        
+def CalculateDamageOnce(ctx : Context, baseWeaponDamage: DamageCollection = None, forceCritical : int = 0, forceTrigger : int = 0) -> float:
     '''
     计算单次造成的伤害
     '''
+    weapon = ctx.weapon
+    enemy = ctx.target
     if baseWeaponDamage is None:
         baseWeaponDamage = GetBaseWeaponDamage(weapon)
-    externalDamageMultiplier = GetExternalDamageMultiplier(weapon, enemy, env)
-    uncriticalMultiplier, criticalMultiplier = GetCriticalMultiplier(weapon, enemy)
+    externalDamageMultiplier = GetExternalDamageMultiplier(ctx)
+    uncriticalMultiplier, criticalMultiplier = GetCriticalMultiplier(ctx)
     uncriticalDamage = baseWeaponDamage * uncriticalMultiplier * externalDamageMultiplier
     criticalDamage = baseWeaponDamage * criticalMultiplier * externalDamageMultiplier
-    uncriticalDamageTaken = DamageTaken(uncriticalDamage, enemy)
-    criticalDamageTaken = DamageTaken(criticalDamage, enemy)
+    uncriticalDamageTaken = DamageTaken(uncriticalDamage, ctx)
+    criticalDamageTaken = DamageTaken(criticalDamage, ctx)
     # 计算是否暴击，以得到直接伤害
     directDamageTaken = uncriticalDamageTaken
     criticalChance = weapon.currentProperties.getCriticalChance() / 100.0
@@ -232,7 +230,7 @@ def CalculateDamageOnce(weapon: WeaponBase, enemy: EnemyBase, env: Environment,
             debuffProperty = TriggerElementDebuff(uncriticalDamage)
             if debuffProperty is not None:
                 # 直接添加到敌人身上
-                enemy.addDebuff(debuffProperty, DebuffBase(6))  # 添加元素异常
+                enemy.addElementDebuff(debuffProperty, DebuffBase(6))  # 添加元素异常
                 # 如果是伤害类的Debuff，则其持续伤害总量计入到damageTaken中
                 DoTMultiplier = 0.0
                 if debuffProperty == PropertyType.Fire or debuffProperty == PropertyType.Electric or debuffProperty == PropertyType.Gas:
@@ -243,19 +241,19 @@ def CalculateDamageOnce(weapon: WeaponBase, enemy: EnemyBase, env: Environment,
                     DoTMultiplier = 0.35
                 if DoTMultiplier > 0:
                     DoTDamage = baseWeaponDamage.sum() * externalDamageMultiplier * DoTMultiplier
-                    doTDamageTaken = DamageTakenDoT(DoTDamage, debuffProperty, enemy) * 6
+                    doTDamageTaken = DamageTakenDoT(DoTDamage, debuffProperty, ctx) * 6
 
     return directDamageTaken + doTDamageTaken  # 返回直接伤害和持续伤害的总和
 
 
-def CalculateMagazineDamage(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
+def CalculateMagazineDamage(ctx : Context) -> float:
     """
     计算一个弹匣造成的总伤害
-    :param weapon: 武器对象
-    :param enemy: 敌人对象
-    :param env: 环境变量
+    :param ctx: 当前环境上下文
     :return: 总伤害
     """
+    weapon = ctx.weapon
+    enemy = ctx.target
     magazine = weapon.currentProperties.getMagazineSize()
     baseWeaponDamage = GetBaseWeaponDamage(weapon)
     damageTaken = 0
@@ -267,34 +265,31 @@ def CalculateMagazineDamage(weapon: WeaponBase, enemy: EnemyBase, env: Environme
             damageTimes += 1
         # 这里是实际造成伤害的地方
         for j in range(damageTimes):
-            damageTaken += CalculateDamageOnce(weapon, enemy, env, baseWeaponDamage,
-                                               forceCritical=0, forceTrigger=0)
+            damageTaken += CalculateDamageOnce(ctx, baseWeaponDamage, forceCritical=0, forceTrigger=0)
     attackSpeed = weapon.currentProperties.getAttackSpeed()
     return damageTaken
 
-def CalculateMagazineDPS(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
+def CalculateMagazineDPS(ctx : Context) -> float:
     """
     计算一个弹匣的DPS
-    :param weapon: 武器对象
-    :param enemy: 敌人对象
-    :param env: 环境变量
+    :param ctx: 当前环境上下文
     :return: 弹匣DPS
     """
+    weapon = ctx.weapon
     magazine = weapon.currentProperties.getMagazineSize()
-    magazineDamage = CalculateMagazineDamage(weapon, enemy, env)
+    magazineDamage = CalculateMagazineDamage(ctx)
     attackSpeed = weapon.currentProperties.getAttackSpeed()
     return magazineDamage / (magazine / attackSpeed)
 
-def CalculateAverageDPS(weapon: WeaponBase, enemy: EnemyBase, env: Environment) -> float:
+def CalculateAverageDPS(ctx : Context) -> float:
     """
     计算平均DPS
-    :param weapon: 武器对象
-    :param enemy: 敌人对象
-    :param env: 环境变量
+    :param ctx: 当前环境上下文
     :return: 平均DPS
     """
+    weapon = ctx.weapon
     magazine = weapon.currentProperties.getMagazineSize()
     reloadTime = weapon.currentProperties.getReloadTime()
-    magazineDamage = CalculateMagazineDamage(weapon, enemy, env)
+    magazineDamage = CalculateMagazineDamage(ctx)
     attackSpeed = weapon.currentProperties.getAttackSpeed()
     return magazineDamage / (magazine / attackSpeed + reloadTime)  # 弹匣伤害除以弹匣射速和换弹时间得到DPS

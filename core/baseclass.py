@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
 import copy
-from data.env import env
 from core.ivtenum import *
 
 # 128个介于0~1之间的随机数
@@ -399,14 +398,14 @@ class PropertySnapshot:
 			self.datas[PropertyType.Virus].get()
 		])
 
-	def update_ghost(self, propertiesArray : list, ghostSetNum: int):
+	def update_ghost(self, propertiesArray : list, ghostSetNum: int, ctx):
 		'''
 		魈鬼系列应用另一套伤害公式
 		:param ghostSetNum: 武器里魈鬼系列套装数量
 		'''
 		# 魈鬼系列应用另一套伤害公式，不过先要计算出未转化为动能伤害之前的伤害
 		self.update(propertiesArray)
-		ghostNum = ghostSetNum + env.SetNum[CardSet.Ghost.value]
+		ghostNum = ghostSetNum + ctx.character.cardSetInfo.getCardSetNum(CardSet.Ghost)
 		totalDamage = self.getTotalDamage()
 		physicsDamage = self.datas[PropertyType.Physics].get()
 		convertedPhysicsDamage = (totalDamage - physicsDamage) * ghostNum + physicsDamage
@@ -433,20 +432,24 @@ class PropertySnapshot:
 
 # 所有卡牌的基类
 class CardBase:
-	def __init__(self, name, cost : int = 0, weaponType: WeaponType = None):
+	def __init__(self, name, cost : int = 0, weaponType: WeaponType = WeaponType.All, WeaponSubType: SubWeaponType = SubWeaponType.Null):
 		self.name = name
 		self.weaponType = weaponType
 		self.cost = cost
+		if weaponType != WeaponType.All and WeaponSubType == SubWeaponType.Null:
+			self.subWeaponType = WeaponTypeToSubTypes[weaponType][0]
 
 	@abstractmethod
 	def getProperties(self):
 		pass
 
 class CardCommon(CardBase):
-	def __init__(self, name, properties : list, cost : int = 0, weaponType: WeaponType = None, cardSet: CardSet = CardSet.Unset):
-		super().__init__(name, cost, weaponType)
+	def __init__(self, name, properties : list, cost : int = 0, weaponType: WeaponType = WeaponType.All,  WeaponSubType: SubWeaponType = SubWeaponType.Null, cardSet: CardSet = CardSet.Unset):
+		super().__init__(name, cost, weaponType, WeaponSubType)
 		self.properties = properties
 		self.cardSet = cardSet
+		if weaponType != WeaponType.All and WeaponSubType == SubWeaponType.Null:
+			self.subWeaponType = WeaponTypeToSubTypes[weaponType][0]
 
 	def getProperties(self):
 		'''返回卡牌的属性列表'''
@@ -457,8 +460,8 @@ class CardCommon(CardBase):
 
 class CardRiven(CardBase):
 	# 紫卡，可拥有多条属性
-	def __init__(self, name, properties : list, cost : int = 0, weaponType: WeaponType = None):
-		super().__init__(name, cost, weaponType)
+	def __init__(self, name, properties : list, cost : int = 0, weaponType: WeaponType = WeaponType.All):
+		super().__init__(name, cost, weaponType, SubWeaponType.Null)
 		self.properties = properties
 
 	def getProperties(self):
@@ -482,6 +485,7 @@ class WeaponBase:
 			self.basename = basename
 		self.isPrime = isPrime
 		self.weaponType = weaponType
+		self.ctx = None
 
 	# 安装卡牌
 	def setCardAtIndex(self, index, card : CardBase):
@@ -520,7 +524,7 @@ class WeaponBase:
 			for card in self.cards:
 				if card is not None:
 					propertyArray.extend(card.getProperties())
-			self.currentProperties.update_ghost(propertyArray, GhostSetNum)
+			self.currentProperties.update_ghost(propertyArray, GhostSetNum, self.ctx)
 		else:
 			propertyArray = []
 			for card in self.cards:
@@ -551,6 +555,9 @@ class WeaponBase:
 			if isinstance(card, CardCommon) and card.cardSet == cardSet:
 				count += 1
 		return count
+	
+	def setContext(self, ctx):
+		self.ctx = ctx
 
 # 所有异常状态的基类
 class DebuffBase:
@@ -558,74 +565,15 @@ class DebuffBase:
 		self.duration = duration
 		self.time = 0
 
-class DebuffQueue:
-	def __init__(self, maxLayers=-1, constantCount=0):
-		self.queue = []
-		self.maxLayers = maxLayers
-		self.constantCount = constantCount
-
-	def addDebuff(self, debuff: DebuffBase):
-		'''触发元素异常'''
-		if self.maxLayers < 0:
-			self.queue.append(debuff)
-		else:
-			# 如果当前层数小于最大层数，直接添加
-			if len(self.queue) < self.maxLayers:
-				self.queue.append(debuff)
-			else:
-				# 如果当前层数已经达到最大层数，替换掉最早的一个
-				self.queue.pop(0)
-				self.queue.append(debuff)
-
-	def setConstantCount(self, count):
-		'''设置不会消退的异常层数'''
-		self.constantCount = count if self.maxLayers < 0 else min(count, self.maxLayers)
-
-	def count(self) -> int:
-		'''获取当前队列中的debuff数量'''
-		return min(len(self.queue) + self.constantCount, self.maxLayers) if self.maxLayers >= 0 else len(self.queue) + self.constantCount
-
 # 所有敌人的基类
 class EnemyBase:
 	def __init__(self, name, level, material):
 		self.name = name
 		self.level = level
 		self.material = material
-		self.debuff = [
-			DebuffQueue(),	# 动能，但不需要
-			DebuffQueue(9),  # 冰冻
-			DebuffQueue(),  # 赛能
-			DebuffQueue(),  # 热波
-			DebuffQueue(),  # 创生
-			DebuffQueue(),  # 裂化
-			DebuffQueue(10),  # 辐射
-			DebuffQueue(),  # 毒气
-			DebuffQueue(10),  # 磁暴
-			DebuffQueue(10),  # 以太
-			DebuffQueue(10),  # 病毒
-		]
 		self.armor = 0.0
 		self.health = 0.0
 		self.shield = 0.0
-
-	def setConstantDebuff(self, propertyType: PropertyType, count: int):
-		'''设置不会消退的异常层数'''
-		if propertyType.isElementDamage():
-			self.debuff[propertyType.value].setConstantCount(count)
-		else:
-			raise ValueError("Invalid property type for constant debuff")
-		
-	def addDebuff(self, propertyType: PropertyType, debuff: DebuffBase):
-		'''添加元素异常'''
-		if propertyType.isElementDamage():
-			self.debuff[propertyType.value].addDebuff(debuff)
-		else:
-			raise ValueError("Invalid property type for debuff")
-		
-	def clearDebuff(self):
-		'''清除元素异常'''
-		for debuffQueue in self.debuff:
-			debuffQueue.queue.clear()
 
 	def printEnemyInfo(self):
 		print(f"当前敌人")
@@ -634,3 +582,44 @@ class EnemyBase:
 		for propertyType, debuffQueue in enumerate(self.debuff):
 			if debuffQueue.count() > 0:
 				print(f"{PropertyType(propertyType).toString()} 层数: {debuffQueue.count()}")
+
+class ArmorProperty:
+	def __init__(self, propertyType: CharacterPropertyType, value: float = 0.0, addon: float = 0.0):
+		self.propertyType = propertyType
+		self.value = value
+		self.addon = addon
+
+	def get(self):
+		return self.value * (1 + self.addon / 100.0)
+	
+	def set(self, value: float, addon: float = 0.0):
+		self.value = value
+		self.addon = addon
+	
+	def add(self, property, ignore_type_check=False):
+		if not isinstance(property, ArmorProperty):
+			raise TypeError("Expected an ArmorProperty instance")
+		if not ignore_type_check and self.propertyType != property.propertyType:
+			raise ValueError("Property types do not match")
+		self.value += property.value
+		self.addon += property.addon
+
+	@classmethod
+	def createModProperty(cls, propertyType: CharacterPropertyType, addon: float = 0.0):
+		return cls(propertyType, 0.0, addon)
+
+# 角色的基类，记叙了角色属性
+class ArmorBase:
+	def __init__(self, armorSet: ArmorSet, subWeaponType: SubWeaponType = SubWeaponType.Null):
+		self.armorSet = armorSet
+		self.properties = []
+		for _ in CharacterPropertyType:
+			self.properties.append(ArmorProperty(_, 100, 0.0))
+		self.isPrime = armorSet.isPrime()
+		self.preferWeaponSubType = subWeaponType
+
+	def getProperty(self, propertyType: CharacterPropertyType) -> float:
+		return self.properties[propertyType.value].get()
+	
+	def setProperty(self, propertyType: CharacterPropertyType, value: float, addon: float = 0.0):
+		self.properties[propertyType.value].set(value, addon)
