@@ -253,7 +253,6 @@ def CalculateMagazineDamage(ctx : Context) -> float:
     :return: 总伤害
     """
     weapon = ctx.weapon
-    enemy = ctx.target
     magazine = weapon.currentProperties.getMagazineSize()
     baseWeaponDamage = GetBaseWeaponDamage(weapon)
     damageTaken = 0
@@ -266,8 +265,21 @@ def CalculateMagazineDamage(ctx : Context) -> float:
         # 这里是实际造成伤害的地方
         for j in range(damageTimes):
             damageTaken += CalculateDamageOnce(ctx, baseWeaponDamage, forceCritical=0, forceTrigger=0)
-    attackSpeed = weapon.currentProperties.getAttackSpeed()
     return damageTaken
+
+def CalculateMagazineDamage_Expectation(ctx : Context) -> float:
+    """
+    使用期望的方法计算一个弹匣造成的总伤害以减少计算量
+    :param ctx: 当前环境上下文
+    :return: 总伤害
+    """
+    weapon = ctx.weapon
+    magazine = weapon.currentProperties.getMagazineSize()
+    baseWeaponDamage = GetBaseWeaponDamage(weapon)
+    oneShotDamage = CalculateDamageOnce(ctx, baseWeaponDamage, forceCritical=0, forceTrigger=0)
+    damageTaken = oneShotDamage * magazine * weapon.currentProperties.getMultiStrike()
+    return damageTaken
+    
 
 def CalculateMagazineDPS(ctx : Context) -> float:
     """
@@ -280,6 +292,18 @@ def CalculateMagazineDPS(ctx : Context) -> float:
     magazineDamage = CalculateMagazineDamage(ctx)
     attackSpeed = weapon.currentProperties.getAttackSpeed()
     return magazineDamage / (magazine / attackSpeed)
+
+def CalculateAverageDPS_Expectation(ctx : Context) -> float:
+    """
+    使用期望的方法计算平均DPS以减少计算量
+    :param ctx: 当前环境上下文
+    :return: 平均DPS
+    """
+    weapon = ctx.weapon
+    magazine = weapon.currentProperties.getMagazineSize()
+    magazineDamage = CalculateMagazineDamage_Expectation(ctx)
+    attackSpeed = weapon.currentProperties.getAttackSpeed()
+    return magazineDamage / (magazine / attackSpeed)  # 弹匣伤害除以弹匣射速和换弹时间得到DPS
 
 def CalculateAverageDPS(ctx : Context) -> float:
     """
