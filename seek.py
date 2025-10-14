@@ -19,6 +19,9 @@ weapon.updateCurrentProperties()
 weapon.printAllProperties()
 
 all_permutations = getAllPermutations(ctx, 8)
+# 随机打乱
+import random
+random.shuffle(all_permutations)
 max_dps = 0
 max_dps_permutation = None
 import time

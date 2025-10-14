@@ -1,0 +1,626 @@
+[
+    {
+        "name": "魈鬼之眼",
+        "properties": [
+            {
+                "type": "Physics",
+                "value": 75
+            }
+        ],
+        "cardSet": "Ghost",
+        "mainWeapon": "All",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "逆转之心",
+        "properties": [
+            {
+                "type": "CriticalChance",
+                "value": 100
+            }
+        ],
+        "cardSet": "Reverse",
+        "mainWeapon": "All",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "天佑猛攻",
+        "properties": [
+            {
+                "type": "AllDamage",
+                "value": 90
+            }
+        ],
+        "cardSet": "Bless",
+        "mainWeapon": "All",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "私法 速效定装",
+        "properties": [
+            {
+                "type": "ReloadTime",
+                "value": -60
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "多重点射",
+        "properties": [
+            {
+                "type": "MultiStrike",
+                "value": 90
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "增压枪膛",
+        "properties": [
+            {
+                "type": "AllDamage",
+                "value": 150
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "透镜校准",
+        "properties": [
+            {
+                "type": "DebuffDuration",
+                "value": 100
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "快速回膛",
+        "properties": [
+            {
+                "type": "AttackSpeed",
+                "value": 50
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "裸露铅心",
+        "properties": [
+            {
+                "type": "CriticalDamage",
+                "value": 125
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "长枪专家",
+        "properties": [
+            {
+                "type": "TriggerChance",
+                "value": 75
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "弹道修正",
+        "properties": [
+            {
+                "type": "CriticalChance",
+                "value": 150
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "扩容弹匣",
+        "properties": [
+            {
+                "type": "MagazineSize",
+                "value": 30
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "零度弹头",
+        "properties": [
+            {
+                "type": "Cold",
+                "value": 75
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "感生电圈",
+        "properties": [
+            {
+                "type": "Electric",
+                "value": 75
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "高温枪管",
+        "properties": [
+            {
+                "type": "Fire",
+                "value": 75
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "弹孔注射",
+        "properties": [
+            {
+                "type": "Poison",
+                "value": 75
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "附能重击",
+        "properties": [
+            {
+                "type": "CriticalDamage",
+                "value": 70
+            },
+            {
+                "type": "TriggerChance",
+                "value": 80
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "炽炎扩容",
+        "properties": [
+            {
+                "type": "Fire",
+                "value": 60
+            },
+            {
+                "type": "MagazineSize",
+                "value": 20
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "磁能扩容",
+        "properties": [
+            {
+                "type": "Magnetic",
+                "value": 60
+            },
+            {
+                "type": "MagazineSize",
+                "value": 40
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "暗蚀装载",
+        "properties": [
+            {
+                "type": "Ether",
+                "value": 60
+            },
+            {
+                "type": "ReloadTime",
+                "value": -40
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "私法 热情难却",
+        "properties": [
+            {
+                "type": "Fire",
+                "value": 150
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "私法 密集弹头",
+        "properties": [
+            {
+                "type": "AllDamage",
+                "value": 200
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "私法 快拆弹鼓",
+        "properties": [
+            {
+                "type": "ReloadTime",
+                "value": -60
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "巷战压制",
+        "properties": [
+            {
+                "type": "DebuffDuration",
+                "value": 100
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "多重溅射",
+        "properties": [
+            {
+                "type": "MultiStrike",
+                "value": 90
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "急冻装载",
+        "properties": [
+            {
+                "type": "Cold",
+                "value": 60
+            },
+            {
+                "type": "ReloadTime",
+                "value": -40
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "业火燎原",
+        "properties": [
+            {
+                "type": "AllDamage",
+                "value": 60
+            },
+            {
+                "type": "Fire",
+                "value": 60
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "暗影扩容",
+        "properties": [
+            {
+                "type": "Ether",
+                "value": 60
+            },
+            {
+                "type": "MagazineSize",
+                "value": 40
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "磁域狂潮",
+        "properties": [
+            {
+                "type": "Magnetic",
+                "value": 60
+            },
+            {
+                "type": "AttackSpeed",
+                "value": 40
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "连续节奏",
+        "properties": [
+            {
+                "type": "AttackSpeed",
+                "value": 50
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "残忍撕裂",
+        "properties": [
+            {
+                "type": "CriticalDamage",
+                "value": 125
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "巷战专家",
+        "properties": [
+            {
+                "type": "TriggerChance",
+                "value": 75
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "极地风情",
+        "properties": [
+            {
+                "type": "Cold",
+                "value": 75
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "高压火线",
+        "properties": [
+            {
+                "type": "Electric",
+                "value": 75
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "疫病灾害",
+        "properties": [
+            {
+                "type": "Poison",
+                "value": 75
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "凶恶射击",
+        "properties": [
+            {
+                "type": "CriticalChance",
+                "value": 150
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name": "豪华弹鼓",
+        "properties": [
+            {
+                "type": "MagazineSize",
+                "value": 30
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Shotgun",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    }
+]

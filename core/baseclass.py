@@ -432,11 +432,13 @@ class PropertySnapshot:
 
 # 所有卡牌的基类
 class CardBase:
-	def __init__(self, name, cost : int = 0, weaponType: WeaponType = WeaponType.All, WeaponSubType: SubWeaponType = SubWeaponType.Null):
+	def __init__(self, name, cost : int = 0, weaponType: WeaponType = WeaponType.All, weaponSubType: SubWeaponType = SubWeaponType.Null, slot = 0):
 		self.name = name
 		self.weaponType = weaponType
+		self.subWeaponType = weaponSubType
 		self.cost = cost
-		if weaponType != WeaponType.All and WeaponSubType == SubWeaponType.Null:
+		self.slot = slot
+		if weaponType != WeaponType.All and weaponSubType == SubWeaponType.Null:
 			self.subWeaponType = WeaponTypeToSubTypes[weaponType][0]
 
 	@abstractmethod
@@ -444,12 +446,10 @@ class CardBase:
 		pass
 
 class CardCommon(CardBase):
-	def __init__(self, name, properties : list, cost : int = 0, weaponType: WeaponType = WeaponType.All,  WeaponSubType: SubWeaponType = SubWeaponType.Null, cardSet: CardSet = CardSet.Unset):
-		super().__init__(name, cost, weaponType, WeaponSubType)
+	def __init__(self, name, properties : list, cost : int = 0, weaponType: WeaponType = WeaponType.All,  weaponSubType: SubWeaponType = SubWeaponType.Null, cardSet: CardSet = CardSet.Unset, slot = 0):
+		super().__init__(name, cost, weaponType, weaponSubType, slot)
 		self.properties = properties
 		self.cardSet = cardSet
-		if weaponType != WeaponType.All and WeaponSubType == SubWeaponType.Null:
-			self.subWeaponType = WeaponTypeToSubTypes[weaponType][0]
 
 	def getProperties(self):
 		'''返回卡牌的属性列表'''
@@ -460,8 +460,8 @@ class CardCommon(CardBase):
 
 class CardRiven(CardBase):
 	# 紫卡，可拥有多条属性
-	def __init__(self, name, properties : list, cost : int = 0, weaponType: WeaponType = WeaponType.All):
-		super().__init__(name, cost, weaponType, SubWeaponType.Null)
+	def __init__(self, name, properties : list, cost : int = 0, weaponType: WeaponType = WeaponType.All, slot = 0):
+		super().__init__(name, cost, weaponType, SubWeaponType.Null, slot)
 		self.properties = properties
 
 	def getProperties(self):

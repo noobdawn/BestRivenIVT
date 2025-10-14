@@ -189,6 +189,12 @@ class WeaponType(Enum):
 			return WeaponTypeToString[self]
 		else:
 			raise ValueError(f"Unknown WeaponType: {self}")
+		
+	def fromString(s: str):
+		if s in StringToWeaponType:
+			return StringToWeaponType[s]
+		else:
+			raise ValueError(f"Unknown WeaponType string: {s}")
 
 WeaponTypeToString = {
 	WeaponType.All: "所有武器",
@@ -197,6 +203,15 @@ WeaponTypeToString = {
 	WeaponType.Melee: "近战武器",
 	WeaponType.Pistol: "手枪",
 	WeaponType.Shotgun: "霰弹枪"
+}
+
+StringToWeaponType = {
+	"All": WeaponType.All,
+	"Rifle": WeaponType.Rifle,
+	"Shotgun": WeaponType.Shotgun,
+	"RocketLauncher": WeaponType.RocketLauncher,
+	"Melee": WeaponType.Melee,
+	"Pistol": WeaponType.Pistol
 }
 
 @unique
@@ -218,9 +233,15 @@ class SubWeaponType(Enum):
 			return SubWeaponTypeToString[self]
 		else:
 			raise ValueError(f"Unknown SubWeaponType: {self}")
+		
+	def fromString(s: str):
+		if s in StringToSubWeaponType:
+			return StringToSubWeaponType[s]
+		else:
+			raise ValueError(f"Unknown SubWeaponType string: {s}")
 
 SubWeaponTypeToString = {
-	SubWeaponType.Null: "无",
+	SubWeaponType.Null: "所有子类型",
 	SubWeaponType.AssaultRifle: "突击步枪",
 	SubWeaponType.SniperRifle: "狙击枪",
 	SubWeaponType.MachineGun: "机枪",
@@ -231,6 +252,20 @@ SubWeaponTypeToString = {
 	SubWeaponType.Kitana: "刀",
 	SubWeaponType.AutoPistol: "自动手枪",
 	SubWeaponType.MicroSubmachineGun: "微型冲锋枪"
+}
+
+StringToSubWeaponType = {
+	"All": SubWeaponType.Null,
+	"AssaultRifle": SubWeaponType.AssaultRifle,
+	"SniperRifle": SubWeaponType.SniperRifle,
+	"MachineGun": SubWeaponType.MachineGun,
+	"LaserGun": SubWeaponType.LaserGun,
+	"Shotgun": SubWeaponType.Shotgun,
+	"RocketLauncher": SubWeaponType.RocketLauncher,
+	"Bow": SubWeaponType.Bow,
+	"Kitana": SubWeaponType.Kitana,
+	"AutoPistol": SubWeaponType.AutoPistol,
+	"MicroSubmachineGun": SubWeaponType.MicroSubmachineGun
 }
 
 WeaponTypeToSubTypes = {
