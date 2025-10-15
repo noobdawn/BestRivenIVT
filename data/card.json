@@ -60,7 +60,7 @@
         "subWeapon": "All",
         "cost": 0,
         "slot": 0,
-        "isPrime": false,
+        "isPrime": true,
         "isRiven": false
     },
     {
@@ -348,7 +348,7 @@
         "subWeapon": "All",
         "cost": 0,
         "slot": 0,
-        "isPrime": false,
+        "isPrime": true,
         "isRiven": false
     },
     {
@@ -364,7 +364,7 @@
         "subWeapon": "All",
         "cost": 0,
         "slot": 0,
-        "isPrime": false,
+        "isPrime": true,
         "isRiven": false
     },
     {
@@ -380,7 +380,7 @@
         "subWeapon": "All",
         "cost": 0,
         "slot": 0,
-        "isPrime": false,
+        "isPrime": true,
         "isRiven": false
     },
     {

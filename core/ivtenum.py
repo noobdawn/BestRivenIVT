@@ -398,3 +398,12 @@ SkillFlagToString = {
 	SkillFlag.Qianyinfeidan: "牵引飞弹",
 	SkillFlag.Dianlizhenya: "电离镇压"
 }
+
+SlotToString = {
+	0 : "jia",
+	1 : "yi",
+	2 : "bing",
+	3 : "ding",
+	4 : "wu",
+	5 : "ji",
+}

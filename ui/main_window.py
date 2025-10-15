@@ -10,6 +10,7 @@ class MainWindow(FluentWindow):
 
     def __init__(self, context):
         super().__init__()
+
         self.context = context
         self.setObjectName('mainWindow')
 
@@ -81,3 +82,4 @@ class MainWindow(FluentWindow):
             # You might need to adjust the base size for your preference.
             font.setPointSize(int(10 * ratio))
             QApplication.setFont(font)
+            

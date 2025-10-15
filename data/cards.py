@@ -50,6 +50,7 @@ def _load_cards_from_json(file_path='data/card.json'):
             weaponSubType=sub_weapon_type,
             cardSet=card_set
         )
+        card.isPrime = card_data.get('isPrime', False)
         all_cards.append(card)
 
     return all_cards

@@ -450,6 +450,7 @@ class CardCommon(CardBase):
 		super().__init__(name, cost, weaponType, weaponSubType, slot)
 		self.properties = properties
 		self.cardSet = cardSet
+		self.isPrime = False
 
 	def getProperties(self):
 		'''返回卡牌的属性列表'''

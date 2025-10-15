@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 from ui.main_window import MainWindow
-from core.context import APP_CONTEXT
+from core.context import APP_CONTEXT 
 
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # Enable high DPI scaling
 

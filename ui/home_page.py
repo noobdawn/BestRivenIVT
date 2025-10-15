@@ -1,16 +1,15 @@
 import os
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QWidget
 from qfluentwidgets import ScrollArea, CardWidget, SubtitleLabel, BodyLabel
 
 
-class HomePage(ScrollArea):
+class HomePage(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('homePage')
-        self.view = QFrame(self)
-        self.vBoxLayout = QVBoxLayout(self.view)
+        self.vBoxLayout = QVBoxLayout(self)
 
         self.banner = QLabel(self)
         self.banner.setScaledContents(True)
@@ -25,8 +24,6 @@ class HomePage(ScrollArea):
 
         self._init_layout()
         self._init_cards()
-        self.setWidget(self.view)
-        self.setWidgetResizable(True)
 
         if self.image_paths:
             self.timer.start(3000)  # Change image every 3 seconds
@@ -51,8 +48,8 @@ class HomePage(ScrollArea):
         self.current_image_index = (self.current_image_index + 1) % len(self.image_paths)
 
     def _init_layout(self):
-        self.vBoxLayout.setContentsMargins(36, 20, 36, 20)
-        self.vBoxLayout.setSpacing(20)
+        # self.vBoxLayout.setContentsMargins(36, 20, 36, 20)
+        self.vBoxLayout.setSpacing(10)
         self.vBoxLayout.setAlignment(Qt.AlignTop)
         self.vBoxLayout.addWidget(self.banner)
 
