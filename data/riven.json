@@ -1,0 +1,24 @@
+[
+    {
+        "name": "基双爆",
+        "properties": [
+            {
+                "type": "AllDamage",
+                "value": 165.0
+            },
+            {
+                "type": "CriticalChance",
+                "value": 150.0
+            },
+            {
+                "type": "CriticalDamage",
+                "value": 120.0
+            }
+        ],
+        "cost": 15,
+        "slot": 0,
+        "isRiven": true,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All"
+    }
+]

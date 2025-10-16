@@ -11,7 +11,7 @@
         "mainWeapon": "All",
         "subWeapon": "All",
         "cost": 0,
-        "slot": 0,
+        "slot": 3,
         "isPrime": false,
         "isRiven": false
     },
@@ -43,7 +43,7 @@
         "mainWeapon": "All",
         "subWeapon": "All",
         "cost": 0,
-        "slot": 0,
+        "slot": 3,
         "isPrime": false,
         "isRiven": false
     },
@@ -59,7 +59,7 @@
         "mainWeapon": "Rifle",
         "subWeapon": "All",
         "cost": 0,
-        "slot": 0,
+        "slot": 5,
         "isPrime": true,
         "isRiven": false
     },
@@ -155,7 +155,7 @@
         "mainWeapon": "Rifle",
         "subWeapon": "All",
         "cost": 0,
-        "slot": 0,
+        "slot": 4,
         "isPrime": false,
         "isRiven": false
     },
@@ -192,6 +192,22 @@
         "isRiven": false
     },
     {
+        "name" : "致密打击",
+        "properties": [
+            {
+                "type": "Physics",
+                "value": 75
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 3,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
         "name": "零度弹头",
         "properties": [
             {
@@ -203,7 +219,7 @@
         "mainWeapon": "Rifle",
         "subWeapon": "All",
         "cost": 0,
-        "slot": 0,
+        "slot": 3,
         "isPrime": false,
         "isRiven": false
     },
@@ -219,8 +235,24 @@
         "mainWeapon": "Rifle",
         "subWeapon": "All",
         "cost": 0,
-        "slot": 0,
+        "slot": 3,
         "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name" :"私法 感生电圈",
+        "properties": [
+            {
+                "type": "Electric",
+                "value": 150
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 3,
+        "isPrime": true,
         "isRiven": false
     },
     {
@@ -235,7 +267,7 @@
         "mainWeapon": "Rifle",
         "subWeapon": "All",
         "cost": 0,
-        "slot": 0,
+        "slot": 3,
         "isPrime": false,
         "isRiven": false
     },
@@ -251,7 +283,7 @@
         "mainWeapon": "Rifle",
         "subWeapon": "All",
         "cost": 0,
-        "slot": 0,
+        "slot": 3,
         "isPrime": false,
         "isRiven": false
     },
@@ -271,7 +303,7 @@
         "mainWeapon": "Rifle",
         "subWeapon": "All",
         "cost": 0,
-        "slot": 0,
+        "slot": 2,
         "isPrime": false,
         "isRiven": false
     },
@@ -325,6 +357,46 @@
             {
                 "type": "ReloadTime",
                 "value": -40
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name" : "熔岩枪管",
+        "properties": [
+            {
+                "type": "Fire",
+                "value": 60
+            },
+            {
+                "type": "TriggerChance",
+                "value": 60
+            }
+        ],
+        "cardSet": null,
+        "mainWeapon": "Rifle",
+        "subWeapon": "All",
+        "cost": 0,
+        "slot": 0,
+        "isPrime": false,
+        "isRiven": false
+    },
+    {
+        "name" : "弹孔感染",
+        "properties": [
+            {
+                "type": "Poison",
+                "value": 60
+            },
+            {
+                "type": "TriggerChance",
+                "value": 60
             }
         ],
         "cardSet": null,

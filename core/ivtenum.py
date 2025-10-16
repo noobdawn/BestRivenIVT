@@ -399,6 +399,15 @@ SkillFlagToString = {
 	SkillFlag.Dianlizhenya: "电离镇压"
 }
 
+@unique
+class Slot(Enum):
+	Jia = 0
+	Yi = 1
+	Bing = 2
+	Ding = 3
+	Wu = 4
+	Ji = 5
+
 SlotToString = {
 	0 : "jia",
 	1 : "yi",
@@ -406,4 +415,13 @@ SlotToString = {
 	3 : "ding",
 	4 : "wu",
 	5 : "ji",
+}
+
+SlotToText = {
+	0 : "甲",
+	1 : "乙",
+	2 : "丙",
+	3 : "丁",
+	4 : "戊",
+	5 : "己",
 }

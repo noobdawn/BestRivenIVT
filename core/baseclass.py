@@ -104,6 +104,19 @@ class Property:
 	@classmethod
 	def createCardProperty(cls, propertyType: PropertyType, addon: float = 0.0):
 		return cls(propertyType, 0.0, addon, from_mod=True)
+	
+	def toString(self):
+		if self.from_mod:
+			return f"{self.propertyType.toString()}: +{self.addon}% (来自模组)"
+		else:
+			if self.value != 0 and self.addon != 0:
+				return f"{self.propertyType.toString()}: {self.value} (+{self.addon}%)"
+			elif self.value != 0:
+				return f"{self.propertyType.toString()}: {self.value}"
+			elif self.addon != 0:
+				return f"{self.propertyType.toString()}: +{self.addon}%"
+			else:
+				return f"{self.propertyType.toString()}: 0"
 
 class PropertySnapshot:
 	def __init__(self, properties):

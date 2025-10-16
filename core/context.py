@@ -1,5 +1,11 @@
-class AppContext:
+from PyQt5.QtCore import QObject, pyqtSignal
+
+class AppContext(QObject):
+    card_data_changed = pyqtSignal()
+    battleContext = None
+    
     def __init__(self):
+        super().__init__()
         self.all_cards = []
 
     def load_data(self):
