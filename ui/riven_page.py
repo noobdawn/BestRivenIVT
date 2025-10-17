@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QWidget
 from qfluentwidgets import (CardWidget, TitleLabel, LineEdit, ComboBox, 
                             PushButton, TransparentToolButton, FluentIcon as FIF, StrongBodyLabel,
@@ -6,10 +6,12 @@ from qfluentwidgets import (CardWidget, TitleLabel, LineEdit, ComboBox,
 import json
 import os
 
-from core.ivtenum import PropertyType, SlotToText, Slot, WeaponType, WeaponTypeToString
+from core.ivtenum import (PropertyType, SlotToText, Slot, WeaponType, WeaponTypeToString,
+                           RivenRange, RivenRangeToString, calculate_riven_property_range)
 from core.baseclass import CardRiven, Property
 from data.cards import save_riven_card, get_card_by_name
 from .component.card_area import CardArea
+from .component.value_edit import ValueEdit
 
 class PropertyEditor(QWidget):
     """Widget for editing a single property."""
@@ -20,7 +22,7 @@ class PropertyEditor(QWidget):
         self.layout.setSpacing(10)
 
         self.property_type_combo = ComboBox(self)
-        self.property_value_edit = LineEdit(self)
+        self.property_value_edit = ValueEdit(input_type='float', is_percentage=True, parent=self)
         self.remove_button = TransparentToolButton(FIF.REMOVE, self)
 
         self.layout.addWidget(StrongBodyLabel("属性:", self))
@@ -70,10 +72,17 @@ class RivenPage(QFrame):
         self.weapon_type_layout.addWidget(self.weapon_type_label)
         self.weapon_type_layout.addWidget(self.weapon_type_combo)
 
+        self.riven_range_layout = QHBoxLayout()
+        self.riven_range_label = StrongBodyLabel('正负增益数量:', self)
+        self.riven_range_combo = ComboBox(self)
+        self.riven_range_layout.addWidget(self.riven_range_label)
+        self.riven_range_layout.addWidget(self.riven_range_combo)
+
         self.basicInfoLayout.addWidget(self.basicInfoTitle)
         self.basicInfoLayout.addLayout(self.name_layout)
         self.basicInfoLayout.addLayout(self.slot_layout)
         self.basicInfoLayout.addLayout(self.weapon_type_layout)
+        self.basicInfoLayout.addLayout(self.riven_range_layout)
 
         self.saveButton = PushButton(FIF.SAVE, '保存', self)
         self.basicInfoLayout.addWidget(self.saveButton, 0, Qt.AlignRight)
@@ -100,8 +109,15 @@ class RivenPage(QFrame):
 
         self._init_slots()
         self._init_weapon_types()
+        self._init_riven_ranges()
         self._init_signals()
-        self.add_property_editor() # Add one by default
+        self.add_property_editor()
+        self.add_property_editor()
+
+    def _init_riven_ranges(self):
+        for rr in RivenRange:
+            self.riven_range_combo.addItem(RivenRangeToString.get(rr, '未知'), userData=rr)
+        self.riven_range_combo.setCurrentText(RivenRangeToString.get(RivenRange.PP))
 
     def _init_weapon_types(self):
         for wt in WeaponType:
@@ -110,13 +126,14 @@ class RivenPage(QFrame):
         self.weapon_type_combo.setCurrentText(WeaponTypeToString.get(WeaponType.Rifle))
 
     def _init_slots(self):
-        self.slot_combo.addItem('无', userData=None)
         for slot in Slot:
             self.slot_combo.addItem(SlotToText.get(slot.value, '未知'), userData=slot)
 
     def _init_signals(self):
         self.addPropertyButton.clicked.connect(self.add_property_editor)
         self.saveButton.clicked.connect(self._save_card)
+        self.weapon_type_combo.currentIndexChanged.connect(self.recalculate_property_range)
+        self.riven_range_combo.currentIndexChanged.connect(self.recalculate_property_range)
 
     def _save_card(self):
         card_name = self.name_edit.text()
@@ -182,9 +199,11 @@ class RivenPage(QFrame):
         
         editor = PropertyEditor(self)
         editor.remove_button.clicked.connect(lambda: self.remove_property_editor(editor))
+        editor.property_type_combo.currentIndexChanged.connect(self.recalculate_property_range)
         self.propertiesListLayout.addWidget(editor)
         self.property_editors.append(editor)
         self.update_buttons_state()
+        self.recalculate_property_range()
 
     def remove_property_editor(self, editor):
         if len(self.property_editors) <= 1:
@@ -198,4 +217,13 @@ class RivenPage(QFrame):
     def update_buttons_state(self):
         self.addPropertyButton.setEnabled(len(self.property_editors) < 4)
         for editor in self.property_editors:
-            editor.remove_button.setEnabled(len(self.property_editors) > 1)
+            editor.remove_button.setEnabled(len(self.property_editors) > 2)
+
+    def recalculate_property_range(self):
+        weapon_type = self.weapon_type_combo.currentData()
+        riven_range = self.riven_range_combo.currentData()
+        for editor in self.property_editors:
+            prop_type = editor.property_type_combo.currentData()
+            if prop_type:
+                min_val, max_val = calculate_riven_property_range(prop_type, weapon_type, riven_range)
+                editor.property_value_edit.setThreshold((min_val, max_val))

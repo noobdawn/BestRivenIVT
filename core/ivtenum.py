@@ -425,3 +425,150 @@ SlotToText = {
 	4 : "戊",
 	5 : "己",
 }
+
+@unique
+class RivenRange(Enum):
+	PP = 0
+	PPN = 1
+	PPP = 2
+	PPPN = 3
+
+	def toString(self):
+		if self in RivenRangeToString:
+			return RivenRangeToString[self]
+		else:
+			raise ValueError(f"Unknown RivenRange: {self}")
+
+RivenRangeToString = {
+	RivenRange.PP: "2 增益 0 减益",
+	RivenRange.PPN: "2 增益 1 减益",
+	RivenRange.PPP: "3 增益 0 减益",
+	RivenRange.PPPN: "3 增益 1 减益",
+}
+
+RivenRangeDict = {
+	PropertyType.AllDamage : {
+		WeaponType.Rifle : 165,
+		WeaponType.Pistol : 165,
+		WeaponType.RocketLauncher : 165,
+		WeaponType.Shotgun : 165,
+		WeaponType.Melee : 165
+	},
+	PropertyType.Headshot : {
+		WeaponType.Rifle : 150,
+		WeaponType.Pistol : 150,
+		WeaponType.RocketLauncher : 150,
+		WeaponType.Shotgun : 150,
+		WeaponType.Melee : 150
+	},
+	PropertyType.AttackSpeed : {
+		WeaponType.Rifle : 60,
+		WeaponType.Pistol : 60,
+		WeaponType.RocketLauncher : 60,
+		WeaponType.Shotgun : 60,
+		WeaponType.Melee : 0
+	},
+	PropertyType.CriticalChance : {
+		WeaponType.Rifle : 150,
+		WeaponType.Pistol : 150,
+		WeaponType.RocketLauncher : 150,
+		WeaponType.Shotgun : 150,
+		WeaponType.Melee : 180
+	},
+	PropertyType.CriticalDamage : {
+		WeaponType.Rifle : 120,
+		WeaponType.Pistol : 120,
+		WeaponType.RocketLauncher : 120,
+		WeaponType.Shotgun : 120,
+		WeaponType.Melee : 90
+	},
+	PropertyType.Physics : {
+		WeaponType.Rifle : 120,
+		WeaponType.Pistol : 120,
+		WeaponType.RocketLauncher : 120,
+		WeaponType.Shotgun : 120,
+		WeaponType.Melee : 120
+	},
+	PropertyType.Cold : {
+		WeaponType.Rifle : 90,
+		WeaponType.Pistol : 90,
+		WeaponType.RocketLauncher : 90,
+		WeaponType.Shotgun : 90,
+		WeaponType.Melee : 90
+	},
+	PropertyType.Electric : {
+		WeaponType.Rifle : 90,
+		WeaponType.Pistol : 90,
+		WeaponType.RocketLauncher : 90,
+		WeaponType.Shotgun : 90,
+		WeaponType.Melee : 90
+	},
+	PropertyType.Fire : {
+		WeaponType.Rifle : 90,
+		WeaponType.Pistol : 90,
+		WeaponType.RocketLauncher : 90,
+		WeaponType.Shotgun : 90,
+		WeaponType.Melee : 90
+	},
+	PropertyType.Poison : {
+		WeaponType.Rifle : 90,
+		WeaponType.Pistol : 90,
+		WeaponType.RocketLauncher : 90,
+		WeaponType.Shotgun : 90,
+		WeaponType.Melee : 90
+	},
+	PropertyType.MagazineSize : {
+		WeaponType.Rifle : 50,
+		WeaponType.Pistol : 50,
+		WeaponType.RocketLauncher : 50,
+		WeaponType.Shotgun : 50,
+		WeaponType.Melee : 0
+	},
+	PropertyType.ReloadTime : {
+		WeaponType.Rifle : -50,
+		WeaponType.Pistol : -50,
+		WeaponType.RocketLauncher : -50,
+		WeaponType.Shotgun : -50,
+		WeaponType.Melee : 0
+	},
+	PropertyType.TriggerChance : {
+		WeaponType.Rifle : 90,
+		WeaponType.Pistol : 90,
+		WeaponType.RocketLauncher : 90,
+		WeaponType.Shotgun : 90,
+		WeaponType.Melee : 90
+	},
+	PropertyType.MultiStrike : {
+		WeaponType.Rifle : 90,
+		WeaponType.Pistol : 90,
+		WeaponType.RocketLauncher : 90,
+		WeaponType.Shotgun : 90,
+		WeaponType.Melee : 0
+	}
+}
+
+RivenRangeParams = {
+	RivenRange.PP: 0.9925,
+	RivenRange.PPN: 1.24,
+	RivenRange.PPP: 0.75,
+	RivenRange.PPPN: 0.94,
+}
+
+def calculate_riven_property_range(prop_type: PropertyType, weapon_type: WeaponType, riven_range: RivenRange):
+	"""
+	Calculates the min and max value for a given riven property.
+	Returns a tuple (min_val, max_val).
+	"""
+	if prop_type not in RivenRangeDict or weapon_type not in RivenRangeDict[prop_type]:
+		return None, None
+
+	base_value = RivenRangeDict[prop_type][weapon_type]
+	if base_value == 0:
+		return 0, 0
+
+	base_value *= RivenRangeParams[riven_range]
+
+	if base_value < 0:
+		return base_value, 0
+	else:
+		return 0, base_value
