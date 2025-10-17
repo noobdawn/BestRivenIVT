@@ -1,17 +1,17 @@
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QWidget
-from qfluentwidgets import (CardWidget, TitleLabel, LineEdit, ComboBox, 
-                            PushButton, TransparentToolButton, FluentIcon as FIF, StrongBodyLabel,
-                            BodyLabel, FlowLayout, InfoBar, InfoBarPosition)
+from qfluentwidgets import (ComboBox, PushButton, TransparentToolButton, FluentIcon as FIF, StrongBodyLabel,
+                            BodyLabel, FlowLayout, InfoBar, InfoBarPosition, LineEdit)
 import json
 import os
 
 from core.ivtenum import (PropertyType, SlotToText, Slot, WeaponType, WeaponTypeToString,
-                           RivenRange, RivenRangeToString, calculate_riven_property_range)
+                           RivenRange, RivenRangeToString, calculate_riven_property_range, AvailableRivenProperties)
 from core.baseclass import CardRiven, Property
 from data.cards import save_riven_card, get_card_by_name
 from .component.card_area import CardArea
 from .component.value_edit import ValueEdit
+from .component.foldable_card_widget import FoldableCardWidget
 
 class PropertyEditor(QWidget):
     """Widget for editing a single property."""
@@ -34,7 +34,7 @@ class PropertyEditor(QWidget):
         self._init_property_types()
 
     def _init_property_types(self):
-        for prop_type in PropertyType:
+        for prop_type in AvailableRivenProperties:
             if prop_type.name != '_Max':
                 self.property_type_combo.addItem(prop_type.toString(), userData=prop_type)
 
@@ -50,9 +50,8 @@ class RivenPage(QFrame):
         self.mainLayout.setSpacing(10)
 
         # Card 1: Basic Info
-        self.basicInfoCard = CardWidget(self)
-        self.basicInfoLayout = QVBoxLayout(self.basicInfoCard)
-        self.basicInfoTitle = TitleLabel('基础信息', self.basicInfoCard)
+        self.basicInfoCard = FoldableCardWidget('基础信息', self)
+        self.basicInfoLayout = self.basicInfoCard.contentLayout()
         
         self.name_layout = QHBoxLayout()
         self.name_label = StrongBodyLabel('卡牌名称:', self)
@@ -78,7 +77,6 @@ class RivenPage(QFrame):
         self.riven_range_layout.addWidget(self.riven_range_label)
         self.riven_range_layout.addWidget(self.riven_range_combo)
 
-        self.basicInfoLayout.addWidget(self.basicInfoTitle)
         self.basicInfoLayout.addLayout(self.name_layout)
         self.basicInfoLayout.addLayout(self.slot_layout)
         self.basicInfoLayout.addLayout(self.weapon_type_layout)
@@ -88,13 +86,11 @@ class RivenPage(QFrame):
         self.basicInfoLayout.addWidget(self.saveButton, 0, Qt.AlignRight)
 
         # Card 2: Properties
-        self.propertiesCard = CardWidget(self)
-        self.propertiesLayout = QVBoxLayout(self.propertiesCard)
-        self.propertiesTitle = TitleLabel('属性', self.propertiesCard)
+        self.propertiesCard = FoldableCardWidget('属性', self)
+        self.propertiesLayout = self.propertiesCard.contentLayout()
         self.addPropertyButton = PushButton(FIF.ADD, '添加属性', self)
         self.propertiesListLayout = QVBoxLayout()
 
-        self.propertiesLayout.addWidget(self.propertiesTitle)
         self.propertiesLayout.addLayout(self.propertiesListLayout)
         self.propertiesLayout.addWidget(self.addPropertyButton, 0)
         

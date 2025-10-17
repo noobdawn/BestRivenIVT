@@ -58,3 +58,30 @@ class IceFall_Prime(WeaponBase):
         Property(PropertyType.MagazineSize, 15),
         Property(PropertyType.ReloadTime, 2.2),
     ]), WeaponType.Shotgun, "冰封瀑", True)
+
+def get_all_weapons():
+    import json
+    from core.ivtenum import PropertyType, WeaponType
+    from core.baseclass import WeaponBase, Property, PropertySnapshot
+    
+    weapons = []
+    with open('data/weapon.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        for weapon_data in data:
+            properties = []
+            for prop in weapon_data['properties']:
+                prop_type = PropertyType[prop['type']]
+                properties.append(Property(prop_type, prop['value']))
+            
+            snapshot = PropertySnapshot(properties)
+            weapon_type = WeaponType[weapon_data['type']]
+            
+            weapon = WeaponBase(
+                name=weapon_data['name'],
+                baseProperties=snapshot,
+                weaponType=weapon_type,
+                basename=weapon_data['basename'],
+                isPrime=weapon_data['isPrime']
+            )
+            weapons.append(weapon)
+    return weapons

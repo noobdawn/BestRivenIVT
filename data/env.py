@@ -1,8 +1,6 @@
 from core.ivtenum import *
 from core.baseclass import *
 
-
-
 # 身上有几个MOD套装
 class CardSetInfo:
 	SetNum = []

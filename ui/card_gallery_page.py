@@ -1,9 +1,10 @@
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QWidget, QHBoxLayout, QButtonGroup
-from qfluentwidgets import ScrollArea, CheckBox, CardWidget, TitleLabel, RadioButton, StrongBodyLabel
+from qfluentwidgets import ScrollArea, CheckBox, RadioButton, StrongBodyLabel
 from core.baseclass import CardBase, CardRiven, CardCommon
 from core.ivtenum import PropertyType, WeaponType
 from .component.card_area import CardArea
 from .component.flow_layout import FlowLayout
+from .component.foldable_card_widget import FoldableCardWidget
 
 class CardGalleryPage(QFrame):
     def __init__(self, context, parent=None):
@@ -14,29 +15,20 @@ class CardGalleryPage(QFrame):
         self.mainLayout = QVBoxLayout(self)
 
         # --- Filter Area ---
-        self.filterContainer = QWidget(self)
-        self.filterContainerLayout = QHBoxLayout(self.filterContainer)
-
         # Weapon Type Filter
-        self.weaponTypeFilterCard = CardWidget(self)
-        self.weaponTypeFilterLayout = QVBoxLayout(self.weaponTypeFilterCard)
-        self.weaponTypeFilterTitle = TitleLabel('武器类型', self.weaponTypeFilterCard)
+        self.weaponTypeFilterCard = FoldableCardWidget('武器类型', self)
         self.weaponTypeFilterWidget = QWidget(self.weaponTypeFilterCard)
         self.weaponTypeFilterFlowLayout = FlowLayout(self.weaponTypeFilterWidget, spacing=10)
         self.weaponTypeGroup = QButtonGroup(self)
 
         # Property Type Filter
-        self.propertyTypeFilterCard = CardWidget(self)
-        self.propertyTypeFilterLayout = QVBoxLayout(self.propertyTypeFilterCard)
-        self.propertyTypeFilterTitle = TitleLabel('属性类型', self.propertyTypeFilterCard)
+        self.propertyTypeFilterCard = FoldableCardWidget('属性类型', self)
         self.propertyTypeFilterWidget = QWidget(self.propertyTypeFilterCard)
         self.propertyTypeFilterFlowLayout = FlowLayout(self.propertyTypeFilterWidget, spacing=10)
         self.propertyCheckboxes = {}
 
         # Card Type Filter
-        self.cardTypeFilterCard = CardWidget(self)
-        self.cardTypeFilterLayout = QVBoxLayout(self.cardTypeFilterCard)
-        self.cardTypeFilterTitle = TitleLabel('卡牌类型', self.cardTypeFilterCard)
+        self.cardTypeFilterCard = FoldableCardWidget('卡牌类型', self)
         self.cardTypeFilterWidget = QWidget(self.cardTypeFilterCard)
         self.cardTypeFilterFlowLayout = FlowLayout(self.cardTypeFilterWidget, spacing=10)
         self.cardTypeCheckboxes = {}
@@ -62,19 +54,13 @@ class CardGalleryPage(QFrame):
         self.mainLayout.addWidget(self.cardArea, 1)
         
         # Layout for weapon type filter card
-        self.weaponTypeFilterLayout.setContentsMargins(10, 10, 10, 10)
-        self.weaponTypeFilterLayout.addWidget(self.weaponTypeFilterTitle)
-        self.weaponTypeFilterLayout.addWidget(self.weaponTypeFilterWidget)
+        self.weaponTypeFilterCard.contentLayout().addWidget(self.weaponTypeFilterWidget)
 
         # Layout for property type filter card
-        self.propertyTypeFilterLayout.setContentsMargins(10, 10, 10, 10)
-        self.propertyTypeFilterLayout.addWidget(self.propertyTypeFilterTitle)
-        self.propertyTypeFilterLayout.addWidget(self.propertyTypeFilterWidget)
+        self.propertyTypeFilterCard.contentLayout().addWidget(self.propertyTypeFilterWidget)
 
         # Layout for card type filter card
-        self.cardTypeFilterLayout.setContentsMargins(10, 10, 10, 10)
-        self.cardTypeFilterLayout.addWidget(self.cardTypeFilterTitle)
-        self.cardTypeFilterLayout.addWidget(self.cardTypeFilterWidget)
+        self.cardTypeFilterCard.contentLayout().addWidget(self.cardTypeFilterWidget)
 
     def _init_weapon_type_filters(self):
         """ Create and add weapon type filter radio buttons """

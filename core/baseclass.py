@@ -11,6 +11,14 @@ for i in range(128):
 	_RANDOM_NUMBERS.append(_SEED / 2147483647.0)
 # 获取随机数
 _RANDOM_INDEX = 0
+
+def reset_random_index():
+	'''
+	重置随机数索引
+	'''
+	global _RANDOM_INDEX
+	_RANDOM_INDEX = 0
+
 def rand():
 	'''
 	获取一个介于0~1之间的随机数

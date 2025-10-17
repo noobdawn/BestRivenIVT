@@ -252,6 +252,7 @@ def CalculateMagazineDamage(ctx : Context) -> float:
     :param ctx: 当前环境上下文
     :return: 总伤害
     """
+    reset_random_index()
     weapon = ctx.weapon
     magazine = weapon.currentProperties.getMagazineSize()
     baseWeaponDamage = GetBaseWeaponDamage(weapon)
@@ -287,6 +288,7 @@ def CalculateMagazineDPS(ctx : Context) -> float:
     :param ctx: 当前环境上下文
     :return: 弹匣DPS
     """
+    reset_random_index()
     weapon = ctx.weapon
     magazine = weapon.currentProperties.getMagazineSize()
     magazineDamage = CalculateMagazineDamage(ctx)
@@ -311,6 +313,7 @@ def CalculateAverageDPS(ctx : Context) -> float:
     :param ctx: 当前环境上下文
     :return: 平均DPS
     """
+    reset_random_index()
     weapon = ctx.weapon
     magazine = weapon.currentProperties.getMagazineSize()
     reloadTime = weapon.currentProperties.getReloadTime()

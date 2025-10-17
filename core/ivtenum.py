@@ -29,6 +29,12 @@ CardSetToString = {
 	CardSet.Bless: "天佑系列"
 }
 
+AvailableCardSets = {
+	CardSet.Reverse,
+	CardSet.Ghost,
+	CardSet.Invasion
+}
+
 @unique
 class EnemyMaterial(Enum):
 	Void = 0
@@ -572,3 +578,20 @@ def calculate_riven_property_range(prop_type: PropertyType, weapon_type: WeaponT
 		return base_value, 0
 	else:
 		return 0, base_value
+	
+AvailableRivenProperties = [
+	PropertyType.AllDamage,
+	PropertyType.Headshot,
+	PropertyType.AttackSpeed,
+	PropertyType.CriticalChance,
+	PropertyType.CriticalDamage,
+	PropertyType.Physics,
+	PropertyType.Cold,
+	PropertyType.Electric,
+	PropertyType.Fire,
+	PropertyType.Poison,
+	PropertyType.MagazineSize,
+	PropertyType.ReloadTime,
+	PropertyType.TriggerChance,
+	PropertyType.MultiStrike
+]
