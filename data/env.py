@@ -119,7 +119,7 @@ class DebuffState:
 class Target(EnemyBase):
 	def __init__(self):
 		super().__init__("靶子", 120, EnemyMaterial.Mechanical)
-		self.armor = 850
+		self.armor = 3430
 		self.debuffState = DebuffState()
 
 	def getArmor(self) -> float:

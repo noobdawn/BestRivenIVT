@@ -63,10 +63,9 @@ class HomePage(QFrame):
         # Usage
         info_card.layout().addWidget(SubtitleLabel("使用方法"))
         info_card.layout().addWidget(BodyLabel(
-            "1. 在'武器配卡'页面选择你的武器。\n"
-            "2. 添加MOD并调整配置。\n"
-            "3. 在'自制紫卡'页面创建和管理你的紫卡。\n"
-            "4. 在'设置'中调整应用参数。"
+            "1. 在自制紫卡页面添加自定义的紫卡。\n"
+            "2. 在武器配卡页面选择武器，设置靶标和角色等环境因素。\n"
+            "3. 下方即可预览每张MOD在当前配装下的增幅效果。\n"
         ))
 
         # Author

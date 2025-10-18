@@ -5,19 +5,9 @@ from core.baseclass import CardBase, CardRiven, CardCommon
 from core.ivtenum import SlotToString
 from data.cards import delete_riven_card
 from core.context import APP_CONTEXT
+from .cost_panel import CostPanel
 
-class CostPanel(QWidget):
-    """A widget that draws a pixmap as its background."""
-    def __init__(self, pixmap_path, parent=None):
-        super().__init__(parent)
-        self.pixmap = QPixmap(pixmap_path)
-        self.setFixedSize(66, 25)
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        if not self.pixmap.isNull():
-            painter.drawPixmap(self.rect(), self.pixmap)
-        super().paintEvent(event)
+FONT_SIZE = 12
 
 class MiniCard(QWidget):
     """
@@ -28,18 +18,9 @@ class MiniCard(QWidget):
     def __init__(self, card: CardBase = None, parent=None):
         super().__init__(parent)
         self.card = card
+        self.base_pixmap_path = self._get_pixel_map_path()
+        self.base_pixmap = QPixmap(self.base_pixmap_path)
         self.is_active = True
-        
-        # 存储原始图片路径
-        if isinstance(card, CardCommon):
-            if card.isPrime:
-                self.base_pixmap_path = 'assets/ui/frame_prime.png'
-            else:
-                self.base_pixmap_path = 'assets/ui/frame_gold.png'
-        else:
-            self.base_pixmap_path = 'assets/ui/frame_riven.png'
-        
-        self.background_pixmap = QPixmap(self.base_pixmap_path)
 
         self.setFixedSize(124, 128)
 
@@ -72,25 +53,29 @@ class MiniCard(QWidget):
 
         # 配置 Name 标签
         font_name = QFont()
-        font_name.setPointSize(16)
+        font_name.setPointSize(FONT_SIZE)
         self.name_label.setFont(font_name)
         self.name_label.setAlignment(Qt.AlignCenter)
         self.name_label.setWordWrap(True)
 
         # 使用布局来定位标签
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(5, 5, 5, 5)
-        layout.addWidget(self.cost_panel, 0, Qt.AlignTop | Qt.AlignHCenter)
-        layout.addStretch()
-        layout.addWidget(self.name_label)
-        layout.addStretch()
-        self.setLayout(layout)
+        self.card_layout = QVBoxLayout(self)
+        self.card_layout.setContentsMargins(5, 5, 5, 5)
+        self.card_layout.addWidget(self.cost_panel, 0, Qt.AlignTop | Qt.AlignHCenter)
+        self.card_layout.addStretch()
+        self.card_layout.addWidget(self.name_label)
+        self.card_layout.addStretch()
+        self.setLayout(self.card_layout)
         
         self.setActive(True) # Set initial active state
 
     def set_card(self, card: CardBase):
         """设置要显示的卡牌。如果卡牌为None，则隐藏该组件。"""
-        self.card = card
+        self.card = card      
+        # 存储原始图片路径
+        self.base_pixmap_path = self._get_pixel_map_path()
+        self.base_pixmap = QPixmap(self.base_pixmap_path)
+
         if self.card:
             self.cost_label.setText(str(self.card.cost))
             if self.card.slot is not None and self.card.slot in SlotToString:
@@ -142,7 +127,7 @@ class MiniCard(QWidget):
         self.cost_label.setFont(font_cost)
 
         font_name = self.name_label.font()
-        font_name.setPointSize(int(16 * scale))
+        font_name.setPointSize(int(FONT_SIZE * scale))
         self.name_label.setFont(font_name)
 
         # 更新极性图标大小
@@ -158,15 +143,19 @@ class MiniCard(QWidget):
 
     def paintEvent(self, event):
         """绘制背景图片或默认背景。"""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-        
-        if not self.background_pixmap.isNull():
-            # 绘制背景图，保持比例并填充
-            painter.drawPixmap(self.rect(), self.background_pixmap)
-        else:
-            # 如果图片不存在，绘制一个深灰色矩形作为备用背景
-            painter.fillRect(self.rect(), QColor(45, 45, 45))
+        painter = QPainter()
+        painter.begin(self)
+        try:
+            painter.setRenderHint(QPainter.Antialiasing)
+            
+            if not self.background_pixmap.isNull():
+                # 绘制背景图，保持比例并填充
+                painter.drawPixmap(self.rect(), self.background_pixmap)
+            else:
+                # 如果图片不存在，绘制一个深灰色矩形作为备用背景
+                painter.fillRect(self.rect(), QColor(45, 45, 45))
+        finally:
+            painter.end()
         
         # 调用父类的paintEvent来确保子控件（QLabel）被正确绘制
         super().paintEvent(event)
@@ -192,3 +181,13 @@ class MiniCard(QWidget):
                 APP_CONTEXT.card_data_changed.emit()
             else:
                 QMessageBox.warning(self, '删除失败', '删除紫卡时发生错误。')
+
+    def _get_pixel_map_path(self) -> str:
+        """获取当前卡片的背景图片路径。"""
+        if isinstance(self.card, CardCommon):
+            if self.card.isPrime:
+                return 'assets/ui/frame_prime.png'
+            else:
+                return 'assets/ui/frame_gold.png'
+        else:
+            return 'assets/ui/frame_riven.png'

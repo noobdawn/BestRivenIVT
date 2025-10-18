@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 from ui.main_window import MainWindow
 from core.context import APP_CONTEXT 
 
-QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # Enable high DPI scaling
+# QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # Enable high DPI scaling
 
 def main():
     # 在创建UI之前加载所有数据
@@ -22,4 +22,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

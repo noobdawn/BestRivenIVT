@@ -10,36 +10,26 @@ This project is designed for the game 'Into the Void' to provide an automated mo
 ## Dependencies
 - numpy
 - unittest
+- PyQt5
+- qfluentwidgets
 
 ## Usage
 
-Refer to `seek.py` for implementation details.
+1. Add custom Riven Mods on the "Riven Mod" page.
+2. On the "Weapon Build" page, select a weapon and set environmental factors such as the target and character.
+3. You can then preview the damage increase effect of each MOD in the current build below.
 
-Assume we have a Riven Mod with the following attributes:
+Here is a preview of the software:
 
-![](/assets/目标紫卡.jpg)
-
-The user of waterdrop is Nian Chunqiu, whose mod configuration is as follows:
-
-![](/assets/角色MOD.jpg)
-
-After adjusting environment settings based on the mod configuration and equipping the target Riven Mod on the weapon, execute the script.
-
-The optimal DPS and best MOD combination calculated by the script are shown below:
-
-![](assets/伤害Log.jpg)
-
-Below are the actual effects observed in the training ground (character remained stationary during shooting; sliding motion was caused by screenshot hotkey). The calculated non-critical hits correspond to Tier 1 criticals, while critical hits correspond to Tier 2 criticals, demonstrating close alignment with the result.
-
-![](/assets/伤害实测.jpg)
+<p align="center"><img src="assets/伤害实测.png" /></p>
 
 ## TODO List
 - [✅] Direct damage calculation formula
 - [✅] DoT damage calculation formula
 - [✅] Elemental trigger and damage bonus effects
 - [✅] Traverse combinations and seek optimal solution
+- [✅] Implement GUI interface
 - [❌] Use OCR to read game data
-- [❌] Implement GUI interface
 - [❌] Complete modding data for non-rifle weapons
 - [❌] Complete data for all firearm types
 - [❌] Add damage formula for aerial series cards (v1.2)

@@ -1,13 +1,135 @@
 from qfluentwidgets import (ComboBox, SpinBox, CheckBox, PrimaryPushButton, SubtitleLabel, LineEdit, FluentIcon as FIF, DoubleSpinBox, PushButton, TransparentToolButton, CardWidget)
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel, QButtonGroup, QGridLayout
 from PyQt5.QtGui import QFont
-from core.ivtenum import EnemyMaterial, PropertyType, SkillFlag, CardSet, AvailableCardSets
+from PyQt5.QtCore import Qt, pyqtSignal
+from core.ivtenum import EnemyMaterial, PropertyType, SkillFlag, CardSet, AvailableCardSets, WeaponType
 from .component.foldable_card_widget import FoldableCardWidget
-from core.baseclass import WeaponBase
+from .component.flow_layout import FlowLayout
+from .component.empty_card import EmptyCard
+from .component.build_card_area import BuildCardArea
+from core.baseclass import WeaponBase, CardRiven, CardCommon, CardBase
 from data.env import Context
 import data.armors as armors
 from core.dps import CalculateAverageDPS, CalculateMagazineDamage, CalculateMagazineDPS, CalculateDamageOnce
 
+class CardBuildCard(CardWidget):
+
+    """ 卡牌构筑卡 """
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('cardBuildCard')
+
+        self.main_layout = QVBoxLayout(self)
+        self.title = SubtitleLabel('卡牌构筑', self)
+        self.card_layout = QHBoxLayout()
+        for i in range(8):
+            slot = EmptyCard(i, self)
+            self.card_layout.addWidget(slot)
+        self.main_layout.addWidget(self.title)
+        self.main_layout.addLayout(self.card_layout)
+
+    def setSelectIndex(self, index: int):
+        for i in range(self.card_layout.count()):
+            widget = self.card_layout.itemAt(i).widget()
+            if isinstance(widget, EmptyCard):
+                widget.setSelected(i == index)
+
+    def getEmptyCard(self, index: int) -> EmptyCard | None:
+        for i in range(self.card_layout.count()):
+            widget = self.card_layout.itemAt(i).widget()
+            if isinstance(widget, EmptyCard) and widget.index == index:
+                return widget
+        return None
+    
+    def getCards(self) -> list[CardBase]:
+        cards = []
+        for i in range(self.card_layout.count()):
+            widget = self.card_layout.itemAt(i).widget()
+            if isinstance(widget, EmptyCard) and widget.card is not None:
+                cards.append(widget.card)
+            else:
+                cards.append(None)
+        return cards
+    
+    def clearCards(self):
+        for i in range(self.card_layout.count()):
+            widget = self.card_layout.itemAt(i).widget()
+            if isinstance(widget, EmptyCard):
+                widget.setCard(None)
+
+class AvailableCardsCard(CardWidget):
+    """ 可用卡牌选择卡 """
+    def __init__(self, context, parent=None):
+        super().__init__(parent)
+        self.context = context
+        self.setObjectName('availableCardsCard')
+
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(10, 10, 10, 10)
+        self.main_layout.setSpacing(10)
+
+        # --- Filter Area ---
+        self.propertyTypeFilterCard = FoldableCardWidget('属性类型', self)
+        self.propertyTypeFilterWidget = QWidget(self.propertyTypeFilterCard)
+        self.propertyTypeFilterFlowLayout = FlowLayout(self.propertyTypeFilterWidget, spacing=10)
+        self.propertyCheckboxes = {}
+
+        self.cardTypeFilterCard = FoldableCardWidget('卡牌类型', self)
+        self.cardTypeFilterWidget = QWidget(self.cardTypeFilterCard)
+        self.cardTypeFilterFlowLayout = FlowLayout(self.cardTypeFilterWidget, spacing=10)
+        self.cardTypeCheckboxes = {}
+
+        # --- Card Area ---
+        self.buildCardArea = BuildCardArea(self.context, self)
+
+        self._init_layout()
+        self._init_property_type_filters()
+        self._init_card_type_filters()
+        
+        self._on_filter_changed()
+
+    def _init_layout(self):
+        """ Initialize the main layout and sub-layouts """
+        self.main_layout.addWidget(self.propertyTypeFilterCard)
+        self.main_layout.addWidget(self.cardTypeFilterCard)
+        self.main_layout.addWidget(self.buildCardArea, 1)
+        
+        self.propertyTypeFilterCard.contentLayout().addWidget(self.propertyTypeFilterWidget)
+        self.cardTypeFilterCard.contentLayout().addWidget(self.cardTypeFilterWidget)
+
+    def _init_property_type_filters(self):
+        """ Create and add property type filter checkboxes """
+        for prop_type in PropertyType:
+            if prop_type.name == '_Max':
+                continue
+            
+            checkbox = CheckBox(prop_type.toString(), self)
+            checkbox.stateChanged.connect(self._on_filter_changed)
+            self.propertyTypeFilterFlowLayout.addWidget(checkbox)
+            self.propertyCheckboxes[prop_type] = checkbox
+
+    def _init_card_type_filters(self):
+        """ Create and add card type filter checkboxes """
+        card_types = {'紫卡': 'riven', 'Prime': 'prime', '普通': 'common'}
+        for name, key in card_types.items():
+            checkbox = CheckBox(name, self)
+            checkbox.stateChanged.connect(self._on_filter_changed)
+            self.cardTypeFilterFlowLayout.addWidget(checkbox)
+            self.cardTypeCheckboxes[key] = checkbox
+
+    def _on_filter_changed(self):
+        """ Handle the filter change event by calling the card area's filter method. """
+        if isinstance(self.parent(), WeaponBuildPage):
+            selected_weapon = self.parent().weapon_selection_card.weapon_combo.currentData()
+        else:
+            selected_weapon = self.parent().parent().weapon_selection_card.weapon_combo.currentData()
+        selected_weapon_type = selected_weapon.weaponType if selected_weapon else WeaponType.All
+
+        selected_properties = {pt for pt, cb in self.propertyCheckboxes.items() if cb.isChecked()}
+        selected_card_types = {key for key, cb in self.cardTypeCheckboxes.items() if cb.isChecked()}
+
+        self.buildCardArea.setFilter(selected_weapon_type, selected_properties, selected_card_types)
+    
 class WeaponPropertyCard(CardWidget):
     """ 武器属性展示卡 """
     def __init__(self, parent=None):
@@ -243,7 +365,7 @@ class TargetSettingCard(FoldableCardWidget):
         self.armor_label = SubtitleLabel('护甲')
         self.armor_spinbox = SpinBox()
         self.armor_spinbox.setRange(0, 99999)
-        self.armor_spinbox.setValue(850)
+        self.armor_spinbox.setValue(3430)
         self.armor_info_label = QLabel()
         self.armor_info_label.setPixmap(FIF.INFO.icon().pixmap(16, 16))
         self.armor_info_label.setToolTip("参考：120级阿尔法")
@@ -295,8 +417,11 @@ class TargetSettingCard(FoldableCardWidget):
 
         content_layout.addLayout(self.skill_debuff_layout)
 
-
 class WeaponBuildPage(QFrame):
+    SelectEmptyCard = pyqtSignal(EmptyCard)
+    OnCardSelected = pyqtSignal(CardBase)
+    RemoveCardFromBuild = pyqtSignal(EmptyCard)
+    SelectIndex = -1
 
     def __init__(self, context, parent=None):
         super().__init__(parent=parent)
@@ -315,19 +440,30 @@ class WeaponBuildPage(QFrame):
         self.left_v_layout.setSpacing(10)
 
         self.weapon_selection_card = WeaponSelectionCard(self)
+        self.card_build_card = CardBuildCard(self)
         self.target_setting_card = TargetSettingCard(self)
         self.role_setting_card = RoleSettingCard(self)
+        self.available_cards_card = AvailableCardsCard(self.context, self)
         
         self.left_v_layout.addWidget(self.weapon_selection_card)
         self.left_v_layout.addWidget(self.target_setting_card)
         self.left_v_layout.addWidget(self.role_setting_card)
+        self.left_v_layout.addWidget(self.card_build_card)
+        self.left_v_layout.addWidget(self.available_cards_card)
         self.left_v_layout.addStretch(1)
 
-        # Right layout for property display
+        # Right layout for property display and available cards
+        self.right_widget = QWidget(self)
+        self.right_v_layout = QVBoxLayout(self.right_widget)
+        self.right_v_layout.setContentsMargins(0, 0, 0, 0)
+        self.right_v_layout.setSpacing(10)
+
         self.weapon_property_card = WeaponPropertyCard(self)
 
+        self.right_v_layout.addWidget(self.weapon_property_card)
+
         self.main_h_layout.addWidget(self.left_widget, 1)
-        self.main_h_layout.addWidget(self.weapon_property_card, 2)
+        self.main_h_layout.addWidget(self.right_widget, 0)
 
         self.load_weapons_to_combo()
         self.context.weapon_data_changed.connect(self.load_weapons_to_combo)
@@ -348,40 +484,41 @@ class WeaponBuildPage(QFrame):
         self.role_setting_card.skill_strength_spinbox.valueChanged.connect(self.on_role_changed)
         # Card set signals are connected in add_card_set_row
 
+        self.OnCardSelected.connect(self.on_card_selected)
+        self.SelectEmptyCard.connect(self.on_select_empty_card)
+        self.RemoveCardFromBuild.connect(self.on_remove_card_from_build)
+
         self.on_weapon_changed()
         self.on_target_changed()
         self.on_role_changed()
 
-    def update_weapon_properties_display(self):
-        weapon = self.context.battleContext.weapon
-        weapon.updateCurrentProperties()
+    def on_remove_card_from_build(self, empty_card: EmptyCard):
+        cards = self.card_build_card.getCards()
+        self.context.battleContext.weapon.setCardPermutes(cards)
+        single_burst_damage, single_burst_dps, average_dps = self.update_weapon_properties_display()
+        self.update_cards_priority(average_dps)
 
-        ctx = self.context.battleContext
+    def on_card_selected(self, card: CardBase):
+        if self.SelectIndex == -1:
+            return
+        selected_empty_card = self.card_build_card.getEmptyCard(self.SelectIndex)
+        if not selected_empty_card:
+            return
+        selected_empty_card.setCard(card)
+        cards = self.card_build_card.getCards()
+        self.context.battleContext.weapon.setCardPermutes(cards)
+        single_burst_damage, single_burst_dps, average_dps = self.update_weapon_properties_display()
+        self.SelectIndex = -1
 
-        single_burst_damage = CalculateMagazineDamage(ctx)
-        single_burst_dps = CalculateMagazineDPS(ctx)
-        average_dps = CalculateAverageDPS(ctx)
-        one_hit_critical_damage = CalculateDamageOnce(ctx, forceCritical=1, forceTrigger=-1)
-        one_hit_non_critical_damage = CalculateDamageOnce(ctx, forceCritical=-1, forceTrigger=-1)
+        self.update_cards_priority(average_dps)
+        
 
-        self.weapon_property_card.update_properties(weapon, single_burst_damage, single_burst_dps, average_dps, one_hit_critical_damage, one_hit_non_critical_damage)
+    def on_select_empty_card(self, empty_card: EmptyCard):
+        self.SelectIndex = empty_card.index
+        self.card_build_card.setSelectIndex(self.SelectIndex)
+        
 
-    def load_weapons_to_combo(self):
-        self.weapon_selection_card.weapon_combo.clear()
-        for weapon in self.context.all_weapons:
-            self.weapon_selection_card.weapon_combo.addItem(weapon.name, userData=weapon)
-
-    def on_weapon_changed(self):
-        selected_weapon = self.weapon_selection_card.weapon_combo.currentData()
-        self.context.battleContext = Context(armors.Shouzhanqibing(), selected_weapon)
-
-        if selected_weapon:
-            # self.context.battleContext.SetWeapon(selected_weapon)
-            self.update_weapon_properties_display()
-
-
-    def on_role_changed(self):
-
+    def update_weapon_properties_display(self):        
         # Update move state
         self.context.battleContext.character.moveState.isMoving = self.role_setting_card.is_moving_checkbox.isChecked()
         self.context.battleContext.character.moveState.isInAir = self.role_setting_card.is_in_air_checkbox.isChecked()
@@ -399,7 +536,75 @@ class WeaponBuildPage(QFrame):
             count = spinbox.value()
             self.context.battleContext.SetCardSetNum(card_set, count)
 
-        self.update_weapon_properties_display()
+        cards = self.card_build_card.getCards()
+        weapon = self.context.battleContext.weapon
+        weapon.setCardPermutes(cards)
+        weapon.updateCurrentProperties()
+
+        ctx = self.context.battleContext
+
+        single_burst_damage = CalculateMagazineDamage(ctx)
+        single_burst_dps = CalculateMagazineDPS(ctx)
+        average_dps = CalculateAverageDPS(ctx)
+
+        ctx.target.clearElementDebuff()
+        one_hit_critical_damage = CalculateDamageOnce(ctx, forceCritical=1, forceTrigger=-1)
+        ctx.target.clearElementDebuff()
+        one_hit_non_critical_damage = CalculateDamageOnce(ctx, forceCritical=-1, forceTrigger=-1)
+
+        self.weapon_property_card.update_properties(weapon, single_burst_damage, single_burst_dps, average_dps, one_hit_critical_damage, one_hit_non_critical_damage)
+        return single_burst_damage, single_burst_dps, average_dps
+
+    def load_weapons_to_combo(self):
+        self.weapon_selection_card.weapon_combo.clear()
+        for weapon in self.context.all_weapons:
+            self.weapon_selection_card.weapon_combo.addItem(weapon.name, userData=weapon)
+
+    def update_cards_priority(self, average_dps):
+        currentCards = self.card_build_card.getCards()
+        # 如果没有None则认为构筑已满
+        if None not in currentCards:
+            return
+
+        # 如果还有空位，则找到第一个空位，并把可用卡牌都塞进去计算一次dps，根据dps增幅排序优先级
+        empty_index = currentCards.index(None)
+        availableCards = self.available_cards_card.buildCardArea.getAvailableCards()
+        for card in availableCards:
+            increase = 0
+            if card in currentCards:
+                increase = 0
+            else:
+                currentCards[empty_index] = card
+                self.context.battleContext.weapon.setCardPermutes(currentCards)
+                self.context.battleContext.weapon.updateCurrentProperties()
+                new_average_dps = CalculateAverageDPS(self.context.battleContext)
+                increase = (new_average_dps - average_dps) / average_dps * 100.0
+            card_widget = self.available_cards_card.buildCardArea.getCardWidgetByCard(card)
+            if card_widget:
+                card_widget.setPriority(increase)
+
+        self.available_cards_card.buildCardArea.sort_cards()
+
+
+    def on_weapon_changed(self):
+        selected_weapon = self.weapon_selection_card.weapon_combo.currentData()
+        self.context.battleContext = Context(armors.Shouzhanqibing(), selected_weapon)
+        selected_weapon.setContext(self.context.battleContext)
+
+        # 清空之前的卡牌构筑
+        self.SelectIndex = -1
+        self.card_build_card.clearCards()
+        self.card_build_card.setSelectIndex(self.SelectIndex)
+
+        if selected_weapon:
+            single_burst_damage, single_burst_dps, average_dps = self.update_weapon_properties_display()
+            self.available_cards_card._on_filter_changed()
+
+            self.update_cards_priority(average_dps)
+
+    def on_role_changed(self):
+        single_burst_damage, single_burst_dps, average_dps = self.update_weapon_properties_display()
+        self.update_cards_priority(average_dps)
 
     def on_target_changed(self):
         # Update target material
@@ -420,4 +625,5 @@ class WeaponBuildPage(QFrame):
             is_active = checkbox.isChecked()
             self.context.battleContext.SetTargetSkillDebuff(flag, is_active)
         
-        self.update_weapon_properties_display()
+        single_burst_damage, single_burst_dps, average_dps = self.update_weapon_properties_display()
+        self.update_cards_priority(average_dps)

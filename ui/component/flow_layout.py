@@ -37,7 +37,7 @@ class FlowLayout(QLayout):
         return True
 
     def heightForWidth(self, width):
-        height = self.doLayout(QRect(0, 0, width, 0), True)
+        height = self.doLayout(QRect(0, 0, self.geometry().width(), 0), True)
         return height
 
     def setGeometry(self, rect):

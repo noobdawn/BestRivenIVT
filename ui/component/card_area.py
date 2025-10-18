@@ -86,8 +86,7 @@ class CardArea(QWidget):
             # Check weapon type
             weapon_match = (
                 not selected_weapon_type or
-                selected_weapon_type == WeaponType.All
-                or (isinstance(card, CardBase) and card.weaponType == selected_weapon_type)
+                (isinstance(card, CardBase) and (card.weaponType == selected_weapon_type or card.weaponType == WeaponType.All))
             )
 
             # Check card type

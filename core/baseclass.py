@@ -206,13 +206,13 @@ class PropertySnapshot:
 		# 先计算非元素伤害的属性
 		elementDamageArray = []
 		for property in propertiesArray:
-			if property.propertyType.isBaseElementDamage():
+			if property.propertyType.isElementDamage():
 				elementDamageArray.append(property)
 			else:
 				self.datas[property.propertyType].add(property)
 		# 将元素伤害百分比转化为数值
 		for property in elementDamageArray:
-			if property.propertyType.isBaseElementDamage():
+			if property.propertyType.isElementDamage():
 				property.value = property.addon * baseDamage / 100.0
 				property.addon = 0.0
 			else:
@@ -426,10 +426,9 @@ class PropertySnapshot:
 		'''
 		# 魈鬼系列应用另一套伤害公式，不过先要计算出未转化为动能伤害之前的伤害
 		self.update(propertiesArray)
-		ghostNum = ghostSetNum + ctx.character.cardSetInfo.getCardSetNum(CardSet.Ghost)
 		totalDamage = self.getTotalDamage()
 		physicsDamage = self.datas[PropertyType.Physics].get()
-		convertedPhysicsDamage = (totalDamage - physicsDamage) * ghostNum + physicsDamage
+		convertedPhysicsDamage = (totalDamage - physicsDamage) * ghostSetNum + physicsDamage
 		# 清空伤害属性
 		for propertyType in PropertyType:
 			if propertyType.isElementDamage():
@@ -537,7 +536,7 @@ class WeaponBase:
 		if not self._dirty:
 			return
 		self.currentProperties = copy.deepcopy(self.baseProperties)
-		GhostSetNum = 0
+		GhostSetNum = self.ctx.character.cardSetInfo.getCardSetNum(CardSet.Ghost)
 		for card in self.cards:
 			if isinstance(card, CardCommon) and card.cardSet == CardSet.Ghost:
 				GhostSetNum += 1

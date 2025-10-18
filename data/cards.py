@@ -50,7 +50,7 @@ def _load_cards_from_json(file_paths=['data/card.json', 'data/riven.json']):
             
             # 解析极性
             slot_val = card_data.get('slot')
-            slot = Slot(slot_val) if slot_val is not None else None
+            slot = int(slot_val)
 
             # 根据 isRiven 字段创建不同类型的卡牌对象
             is_riven = card_data.get('isRiven', False)
@@ -217,3 +217,55 @@ def delete_riven_card(name: str) -> bool:
         print(f"错误: 删除并保存紫卡失败: {e}")
         return False
 
+    """
+    将JSON字符串反序列化为卡牌对象。
+    """
+    try:
+        card_data = json.loads(json_str)
+        
+        # 解析属性
+        properties = []
+        for prop_data in card_data.get('properties', []):
+            try:
+                prop_type = PropertyType[prop_data['type']]
+                prop_value = prop_data['value']
+                properties.append(Property.createCardProperty(prop_type, prop_value))
+            except KeyError:
+                print(f"警告: 在卡牌 '{card_data['name']}' 中遇到未知的属性类型 '{prop_data.get('type')}'。已跳过。")
+                continue
+
+        # 解析极性
+        slot_val = card_data.get('slot')
+        slot = Slot(slot_val) if slot_val is not None else None
+
+        is_riven = card_data.get('isRiven', False)
+        
+        if is_riven:
+            card = CardRiven(
+                name=card_data['name'],
+                properties=properties,
+                weaponType=WeaponType.All,
+                cost=card_data.get('cost', 0),
+                slot=slot
+            )
+        else:
+            weapon_type = WeaponType[card_data.get('weaponType', 'All')] if 'weaponType' in card_data else WeaponType.All
+            sub_weapon_type = SubWeaponType[card_data.get('subWeaponType', 'All')] if 'subWeaponType' in card_data else SubWeaponType.Null
+            card_set_str = card_data.get('cardSet')
+            card_set = CardSet[card_set_str] if card_set_str and card_set_str in CardSet.__members__ else CardSet.Unset
+
+            card = CardCommon(
+                name=card_data['name'],
+                properties=properties,
+                cost=card_data.get('cost', 0),
+                weaponType=weapon_type,
+                weaponSubType=sub_weapon_type,
+                cardSet=card_set,
+                slot=slot
+            )
+            card.isPrime = card_data.get('isPrime', False)
+        
+        return card
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"错误: 无法反序列化卡牌数据: {e}")
+        return None

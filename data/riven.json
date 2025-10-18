@@ -20,5 +20,41 @@
         "isRiven": true,
         "mainWeapon": "Rifle",
         "subWeapon": "All"
+    },
+    {
+        "name": "水滴 精密",
+        "properties": [
+            {
+                "type": "CriticalChance",
+                "value": 112.0
+            },
+            {
+                "type": "CriticalDamage",
+                "value": 97.0
+            }
+        ],
+        "cost": 15,
+        "slot": 0,
+        "isRiven": true,
+        "mainWeapon": "All",
+        "subWeapon": "All"
+    },
+    {
+        "name": "水滴 多重",
+        "properties": [
+            {
+                "type": "MultiStrike",
+                "value": 104.0
+            },
+            {
+                "type": "AllDamage",
+                "value": 204.0
+            }
+        ],
+        "cost": 15,
+        "slot": 0,
+        "isRiven": true,
+        "mainWeapon": "All",
+        "subWeapon": "All"
     }
 ]
