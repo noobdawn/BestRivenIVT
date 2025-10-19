@@ -1,36 +1,14 @@
 [
     {
-        "name": "基双爆",
-        "properties": [
-            {
-                "type": "AllDamage",
-                "value": 165.0
-            },
-            {
-                "type": "CriticalChance",
-                "value": 150.0
-            },
-            {
-                "type": "CriticalDamage",
-                "value": 120.0
-            }
-        ],
-        "cost": 15,
-        "slot": 0,
-        "isRiven": true,
-        "mainWeapon": "Rifle",
-        "subWeapon": "All"
-    },
-    {
-        "name": "水滴 精密",
+        "name": "特斯拉感生步枪 精密",
         "properties": [
             {
                 "type": "CriticalChance",
-                "value": 112.0
+                "value": 131.0
             },
             {
-                "type": "CriticalDamage",
-                "value": 97.0
+                "type": "Headshot",
+                "value": 127.0
             }
         ],
         "cost": 15,
@@ -40,15 +18,15 @@
         "subWeapon": "All"
     },
     {
-        "name": "水滴 多重",
+        "name": "水滴多重",
         "properties": [
-            {
-                "type": "MultiStrike",
-                "value": 104.0
-            },
             {
                 "type": "AllDamage",
                 "value": 204.0
+            },
+            {
+                "type": "MultiStrike",
+                "value": 104.0
             }
         ],
         "cost": 15,

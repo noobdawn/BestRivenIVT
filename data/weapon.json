@@ -186,5 +186,93 @@
                 "value": 2.2
             }
         ]
+    },
+    {
+        "name" : "特斯拉感生步枪",
+        "basename" : "特斯拉感生步枪",
+        "type" : "Rifle",
+        "isPrime" : false,
+        "properties" : [
+            {
+                "type" : "Magnetic",
+                "value" : 522.0
+            },
+            {
+                "type" : "CriticalChance",
+                "value" : 17.0
+            },
+            {
+                "type" : "CriticalDamage",
+                "value" : 190.0
+            },
+            {
+                "type" : "MultiStrike",
+                "value" : 1.0
+            },
+            {
+                "type" : "TriggerChance",
+                "value" : 30.0
+            },
+            {
+                "type" : "AttackSpeed",
+                "value" : 0.8
+            },
+            {
+                "type" : "DebuffDuration",
+                "value" : 100.0
+            },
+            {
+                "type" : "MagazineSize",
+                "value" : 8
+            },
+            {
+                "type" : "ReloadTime",
+                "value" : 2.5
+            }
+        ]
+    },
+    {
+        "name": "噪波",
+        "basename": "噪波",
+        "type": "Pistol",
+        "isPrime": false,
+        "properties": [
+            {
+                "type": "Electric",
+                "value": 28.0
+            },
+            {
+                "type": "CriticalChance",
+                "value": 23.0
+            },
+            {
+                "type": "CriticalDamage",
+                "value": 220.0
+            },
+            {
+                "type": "MultiStrike",
+                "value": 1.0
+            },
+            {
+                "type": "TriggerChance",
+                "value": 20.0
+            },
+            {
+                "type": "AttackSpeed",
+                "value": 12.0
+            },
+            {
+                "type": "DebuffDuration",
+                "value": 100.0
+            },
+            {
+                "type": "MagazineSize",
+                "value": 60
+            },
+            {
+                "type": "ReloadTime",
+                "value": 1.2
+            }
+        ]
     }
 ]
