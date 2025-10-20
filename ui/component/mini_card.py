@@ -91,7 +91,7 @@ class MiniCard(QWidget):
 
             self.name_label.setText(self.card.name)
             # Build tooltip from properties
-            prop_texts = [prop.toString() for prop in self.card.properties]
+            prop_texts = [str(prop) for prop in self.card.properties]
             tooltip_text = "\n".join(prop_texts)
             self.setToolTip(tooltip_text)
             self.setVisible(True)

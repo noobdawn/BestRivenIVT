@@ -1,11 +1,35 @@
 from qfluentwidgets import FluentWindow, SubtitleLabel, setFont, NavigationItemPosition
 from qfluentwidgets import FluentIcon as FIF
+from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QApplication
+
 from .home_page import HomePage
 from .card_gallery_page import CardGalleryPage
 from .riven_page import RivenPage
 from .weapon_build_page import WeaponBuildPage
+from .automation_page import AutomationPage
+from core.automation import AutoJumpWorker
+
+from pynput import keyboard
+
+
+class HotkeyListener(QObject):
+    home_pressed = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.listener = keyboard.Listener(on_press=self.on_press)
+
+    def on_press(self, key):
+        if key == keyboard.Key.home:
+            self.home_pressed.emit()
+
+    def start(self):
+        self.listener.start()
+
+    def stop(self):
+        self.listener.stop()
 
 
 class MainWindow(FluentWindow):
@@ -23,16 +47,43 @@ class MainWindow(FluentWindow):
         self.cardGalleryInterface = CardGalleryPage(self.context, self)
         self.weaponBuildInterface = WeaponBuildPage(self.context, self)
         self.rivenInterface = RivenPage(self.context, self)
+        self.automationInterface = AutomationPage(self)
         self.settingInterface = QFrame(self)
 
         self.weaponBuildInterface.setObjectName('weaponBuildInterface')
         self.rivenInterface.setObjectName('rivenInterface')
+        self.automationInterface.setObjectName('automationInterface')
         self.settingInterface.setObjectName('settingInterface')
 
         self.init_setting_layout()
 
         self.initNavigation()
         self.initWindow()
+
+        # Automation
+        self.auto_jump_worker = AutoJumpWorker()
+        self.automationInterface.auto_jump_checkbox.stateChanged.connect(self.toggle_auto_jump)
+        self.automationInterface.jump_interval_edit.textChanged.connect(self.update_jump_interval)
+
+        # Hotkeys
+        self.hotkey_listener = HotkeyListener(self)
+        self.hotkey_listener.home_pressed.connect(self.toggle_auto_jump_hotkey)
+        self.hotkey_listener.start()
+
+    def toggle_auto_jump(self, state):
+        if state:
+            interval_text = self.automationInterface.jump_interval_edit.text()
+            self.auto_jump_worker.set_interval(interval_text)
+            self.auto_jump_worker.start()
+        else:
+            self.auto_jump_worker.stop()
+
+    def update_jump_interval(self, text):
+        self.auto_jump_worker.set_interval(text)
+
+    def toggle_auto_jump_hotkey(self):
+        is_checked = self.automationInterface.auto_jump_checkbox.isChecked()
+        self.automationInterface.auto_jump_checkbox.setChecked(not is_checked)
 
     def init_home_layout(self):
         self.vBoxLayout = QVBoxLayout(self.homeInterface)
@@ -51,6 +102,7 @@ class MainWindow(FluentWindow):
         self.addSubInterface(self.weaponBuildInterface, FIF.DEVELOPER_TOOLS, '武器配卡')
         self.addSubInterface(self.rivenInterface, FIF.EDIT, '自制紫卡')
         self.addSubInterface(self.cardGalleryInterface, FIF.COPY, '卡牌一览')
+        self.addSubInterface(self.automationInterface, FIF.ROBOT, '自动化')
         self.addSubInterface(self.settingInterface, FIF.SETTING, '设置', position=NavigationItemPosition.BOTTOM)
 
     def initWindow(self):
@@ -71,3 +123,7 @@ class MainWindow(FluentWindow):
             font.setPointSize(int(10 * ratio))
             QApplication.setFont(font)
             
+    def closeEvent(self, event):
+        self.hotkey_listener.stop()
+        super().closeEvent(event)
+

@@ -196,23 +196,23 @@ class Context:
 	def printEnvironment(self):
 		print("当前环境信息:")
 		print("角色属性:")
-		print("  装甲: " + self.character.armor.armorSet.toString())
+		print("  装甲: " + str(self.character.armor.armorSet))
 		for propType in CharacterPropertyType:
-			print(f"  {propType.toString()}: {self.character.armor.getProperty(propType)}")
+			print(f"  {propType}: {self.character.armor.getProperty(propType)}")
 		print("套装MOD数量:")
 		for cardSet in CardSet:
 			if self.character.cardSetInfo.hasCardSet(cardSet):
-				print(f"  {cardSet.toString()}: {self.character.cardSetInfo.getCardSetNum(cardSet)}")
+				print(f"  {cardSet}: {self.character.cardSetInfo.getCardSetNum(cardSet)}")
 		print("靶子基本信息:")
 		print(f"  名称: {self.target.name}")
-		print(f"  材质: {self.target.material.toString()}")
+		print(f"  材质: {self.target.material}")
 		print(f"  装甲: {self.target.armor}")
 		print("靶子异常状态:")
 		for propType in PropertyType:
 			if propType.isElementDamage():
 				count = self.target.debuffState.elementDebuff[propType.value].count()
 				if count > 0:
-					print(f"  {propType.toString()} 异常层数: {count}")
+					print(f"  {propType} 异常层数: {count}")
 		for skillFlag, isActive in self.target.debuffState.skillDebuff.items():
 			if isActive:
-				print(f"  技能易伤: {skillFlag.toString()}")
+				print(f"  技能易伤: {skillFlag}")

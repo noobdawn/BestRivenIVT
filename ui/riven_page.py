@@ -36,7 +36,7 @@ class PropertyEditor(QWidget):
     def _init_property_types(self):
         for prop_type in AvailableRivenProperties:
             if prop_type.name != '_Max':
-                self.property_type_combo.addItem(prop_type.toString(), userData=prop_type)
+                self.property_type_combo.addItem(str(prop_type), userData=prop_type)
 
 class RivenPage(QFrame):
     def __init__(self, context, parent=None):
@@ -147,14 +147,14 @@ class RivenPage(QFrame):
             prop_value_str = editor.property_value_edit.text()
             
             if not prop_value_str:
-                InfoBar.error('错误', f'属性 {prop_type.toString()} 的数值不能为空!', parent=self.window(), position=InfoBarPosition.TOP, duration=3000)
+                InfoBar.error('错误', f'属性 {prop_type} 的数值不能为空!', parent=self.window(), position=InfoBarPosition.TOP, duration=3000)
                 return
             
             try:
                 prop_value = float(prop_value_str)
                 properties.append(Property.createCardProperty(prop_type, prop_value))
             except ValueError:
-                InfoBar.error('错误', f'属性 {prop_type.toString()} 的数值无效!', parent=self.window(), position=InfoBarPosition.TOP, duration=3000)
+                InfoBar.error('错误', f'属性 {prop_type} 的数值无效!', parent=self.window(), position=InfoBarPosition.TOP, duration=3000)
                 return
 
         if not properties:

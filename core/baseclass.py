@@ -113,18 +113,18 @@ class Property:
 	def createCardProperty(cls, propertyType: PropertyType, addon: float = 0.0):
 		return cls(propertyType, 0.0, addon, from_mod=True)
 	
-	def toString(self):
+	def __str__(self):
 		if self.from_mod:
-			return f"{self.propertyType.toString()}: +{self.addon}% (来自模组)"
+			return f"{self.propertyType}: +{self.addon}% (来自模组)"
 		else:
 			if self.value != 0 and self.addon != 0:
-				return f"{self.propertyType.toString()}: {self.value} (+{self.addon}%)"
+				return f"{self.propertyType}: {self.value} (+{self.addon}%)"
 			elif self.value != 0:
-				return f"{self.propertyType.toString()}: {self.value}"
+				return f"{self.propertyType}: {self.value}"
 			elif self.addon != 0:
-				return f"{self.propertyType.toString()}: +{self.addon}%"
+				return f"{self.propertyType}: +{self.addon}%"
 			else:
-				return f"{self.propertyType.toString()}: 0"
+				return f"{self.propertyType}: 0"
 
 class PropertySnapshot:
 	def __init__(self, properties):
@@ -561,7 +561,7 @@ class WeaponBase:
 		print(f"Total Damage: {self.currentProperties.getTotalDamage()}")
 		for propertyType, property in self.currentProperties.datas.items():
 			if property.get() != 0:
-				print(f"{propertyType.toString()}: {property.get()}")
+				print(f"{propertyType}: {property.get()}")
 		print("Cards:")
 		for card in self.cards:
 			if card is not None:
@@ -598,11 +598,11 @@ class EnemyBase:
 
 	def printEnemyInfo(self):
 		print(f"当前敌人")
-		print(f"材质: {self.material.toString()}")
+		print(f"材质: {self.material}")
 		print(f"护甲: {self.armor}")
 		for propertyType, debuffQueue in enumerate(self.debuff):
 			if debuffQueue.count() > 0:
-				print(f"{PropertyType(propertyType).toString()} 层数: {debuffQueue.count()}")
+				print(f"{PropertyType(propertyType)} 层数: {debuffQueue.count()}")
 
 class ArmorProperty:
 	def __init__(self, propertyType: CharacterPropertyType, value: float = 0.0, addon: float = 0.0):

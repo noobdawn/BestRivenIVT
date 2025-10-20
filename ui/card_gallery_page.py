@@ -65,7 +65,7 @@ class CardGalleryPage(QFrame):
     def _init_weapon_type_filters(self):
         """ Create and add weapon type filter radio buttons """
         # Add 'All' option
-        radio_all = RadioButton(WeaponType.All.toString(), self.weaponTypeFilterWidget)
+        radio_all = RadioButton(str(WeaponType.All), self.weaponTypeFilterWidget)
         radio_all.setChecked(True)
         radio_all.setProperty('weaponType', WeaponType.All)
         radio_all.toggled.connect(self._on_filter_changed)
@@ -75,7 +75,7 @@ class CardGalleryPage(QFrame):
         for weapon_type in WeaponType:
             if weapon_type == WeaponType.All:
                 continue
-            radio = RadioButton(weapon_type.toString(), self.weaponTypeFilterWidget)
+            radio = RadioButton(str(weapon_type), self.weaponTypeFilterWidget)
             radio.setProperty('weaponType', weapon_type)
             radio.toggled.connect(self._on_filter_changed)
             self.weaponTypeFilterFlowLayout.addWidget(radio)
@@ -87,7 +87,7 @@ class CardGalleryPage(QFrame):
             if prop_type.name == '_Max':
                 continue
             
-            checkbox = CheckBox(prop_type.toString(), self)
+            checkbox = CheckBox(str(prop_type), self)
             checkbox.stateChanged.connect(self._on_filter_changed)
             self.propertyTypeFilterFlowLayout.addWidget(checkbox)
             self.propertyCheckboxes[prop_type] = checkbox

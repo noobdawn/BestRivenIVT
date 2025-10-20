@@ -103,7 +103,7 @@ class AvailableCardsCard(CardWidget):
             if prop_type.name == '_Max':
                 continue
             
-            checkbox = CheckBox(prop_type.toString(), self)
+            checkbox = CheckBox(str(prop_type), self)
             checkbox.stateChanged.connect(self._on_filter_changed)
             self.propertyTypeFilterFlowLayout.addWidget(checkbox)
             self.propertyCheckboxes[prop_type] = checkbox
@@ -188,7 +188,7 @@ class WeaponPropertyCard(CardWidget):
                 else:
                     display_value = f'{value:.2f}'
                 
-                self._add_property_label(prop_type.toString(), display_value)
+                self._add_property_label(str(prop_type), display_value)
 
     def _add_property_label(self, name, value, tooltip=None):
         h_layout = QHBoxLayout()
@@ -293,7 +293,7 @@ class RoleSettingCard(FoldableCardWidget):
         row_layout = QHBoxLayout()
         combo = ComboBox(self)
         for cs in AvailableCardSets:
-            combo.addItem(cs.toString(), userData=cs)
+            combo.addItem(str(cs), userData=cs)
         
         spinbox = SpinBox(self)
         spinbox.setRange(1, 10)
@@ -353,7 +353,7 @@ class TargetSettingCard(FoldableCardWidget):
         self.material_label = SubtitleLabel('靶标材质')
         self.material_combo = ComboBox()
         for material in EnemyMaterial:
-            self.material_combo.addItem(material.toString(), userData=material)
+            self.material_combo.addItem(str(material), userData=material)
         self.material_combo.setCurrentIndex(EnemyMaterial.Void.value)
         self.material_layout.addWidget(self.material_label)
         self.material_layout.addStretch(1)
@@ -411,7 +411,7 @@ class TargetSettingCard(FoldableCardWidget):
 
         self.skill_debuff_widgets = {}
         for flag in SkillFlag:
-            checkbox = CheckBox(flag.toString())
+            checkbox = CheckBox(str(flag))
             self.skill_debuff_layout.addWidget(checkbox)
             self.skill_debuff_widgets[flag] = checkbox
 

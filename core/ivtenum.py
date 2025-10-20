@@ -14,7 +14,7 @@ class CardSet(Enum):
 	Snake = 4		# 蛇年活动卡
 	Bless = 5		# 天佑，释放技能转换40%为护盾
 
-	def toString(self):
+	def __str__(self):
 		if self in CardSetToString:
 			return CardSetToString[self]
 		else:
@@ -42,7 +42,7 @@ class EnemyMaterial(Enum):
 	Biological = 2
 	Energy = 3
 
-	def toString(self):
+	def __str__(self):
 		if self in EnemyMaterialToString:
 			return EnemyMaterialToString[self]
 		else:
@@ -110,7 +110,7 @@ class PropertyType(Enum):
 		# 伤害类型是指动能伤害和元素伤害
 		return self.value <= 10
 	
-	def toString(self):
+	def __str__(self):
 		if self in PropertyTypeToString:
 			return PropertyTypeToString[self]
 		else:
@@ -160,7 +160,7 @@ class CharacterPropertyType(Enum):
 	ShieldRechargeRate = 10
 	ShieldRechargeDelay = 11
 
-	def toString(self):
+	def __str__(self):
 		if self in CharacterPropertyTypeToString:
 			return CharacterPropertyTypeToString[self]
 		else:
@@ -190,7 +190,7 @@ class WeaponType(Enum):
 	Melee = 4
 	Pistol = 5
 
-	def toString(self):
+	def __str__(self):
 		if self in WeaponTypeToString:
 			return WeaponTypeToString[self]
 		else:
@@ -234,7 +234,7 @@ class SubWeaponType(Enum):
 	AutoPistol = 9 # 自动手枪
 	MicroSubmachineGun = 10 # 微型冲锋枪
 
-	def toString(self):
+	def __str__(self):
 		if self in SubWeaponTypeToString:
 			return SubWeaponTypeToString[self]
 		else:
@@ -283,6 +283,7 @@ WeaponTypeToSubTypes = {
 }
 
 @unique
+# 角色枚举
 class Hero(Enum):
 	Nianchunqiu = 0 # 年春秋
 	Taogongnuonuo = 1 # 桃宫诺诺
@@ -297,7 +298,7 @@ class Hero(Enum):
 	Kirov = 10 # 基洛夫·瑞泊汀
 	Shana = 11 # 莎娜
 
-	def toString(self):
+	def __str__(self):
 		if self in HeroToString:
 			return HeroToString[self]
 		else:
@@ -319,6 +320,7 @@ HeroToString = {
 }
 
 @unique
+# 装甲套装枚举
 class ArmorSet(Enum):
 	Shouzhanqibing = 0 # 首战奇兵
 	Guangyin = 1 # 光阴
@@ -341,7 +343,7 @@ class ArmorSet(Enum):
 	Kunshou = 18 # 困兽
 	Kunshou_Prime = 19 # 私法 困兽
 
-	def toString(self):
+	def __str__(self):
 		if self in ArmorSetToString:
 			return ArmorSetToString[self]
 		else:
@@ -390,11 +392,12 @@ HeroToArmorSet = {
 }
 
 @unique
+# 因为技能而获得的特殊标记
 class SkillFlag(Enum):
 	Qianyinfeidan = 0 # 牵引飞弹
 	Dianlizhenya = 1 # 电离镇压
 
-	def toString(self):
+	def __str__(self):
 		if self in SkillFlagToString:
 			return SkillFlagToString[self]
 		else:
@@ -406,6 +409,7 @@ SkillFlagToString = {
 }
 
 @unique
+# MOD的卡槽类型
 class Slot(Enum):
 	Jia = 0
 	Yi = 1
@@ -433,13 +437,14 @@ SlotToText = {
 }
 
 @unique
+# 紫卡条目数量，确认有几个增益和几个减益
 class RivenRange(Enum):
 	PP = 0
 	PPN = 1
 	PPP = 2
 	PPPN = 3
 
-	def toString(self):
+	def __str__(self):
 		if self in RivenRangeToString:
 			return RivenRangeToString[self]
 		else:
@@ -452,6 +457,7 @@ RivenRangeToString = {
 	RivenRange.PPPN: "3 增益 1 减益",
 }
 
+# 记录了不同属性在紫卡上的取值范围
 RivenRangeDict = {
 	PropertyType.AllDamage : {
 		WeaponType.Rifle : 165,
@@ -553,6 +559,7 @@ RivenRangeDict = {
 	}
 }
 
+# 记录了因为紫卡条目数量而造成的浮动数值
 RivenRangeParams = {
 	RivenRange.PP: 0.9925,
 	RivenRange.PPN: 1.24,

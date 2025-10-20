@@ -3,6 +3,13 @@ from PyQt5.QtCore import QObject, pyqtSignal
 class AppContext(QObject):
     card_data_changed = pyqtSignal()
     weapon_data_changed = pyqtSignal()
+
+    # 自动化操作所需要触发的信号
+    trigger_auto_sprint = pyqtSignal()
+    trigger_auto_jump = pyqtSignal()
+    trigger_auto_adept_skill = pyqtSignal()
+    trigger_auto_finisher_skill = pyqtSignal()
+
     battleContext = None
     
     def __init__(self):
