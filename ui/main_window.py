@@ -9,28 +9,7 @@ from .card_gallery_page import CardGalleryPage
 from .riven_page import RivenPage
 from .weapon_build_page import WeaponBuildPage
 from .automation_page import AutomationPage
-from core.automation import AutoJumpWorker
-
-from pynput import keyboard
-
-
-class HotkeyListener(QObject):
-    home_pressed = pyqtSignal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.listener = keyboard.Listener(on_press=self.on_press)
-
-    def on_press(self, key):
-        if key == keyboard.Key.home:
-            self.home_pressed.emit()
-
-    def start(self):
-        self.listener.start()
-
-    def stop(self):
-        self.listener.stop()
-
+from core.automation import AutoJumpWorker, AutoSprintWorker
 
 class MainWindow(FluentWindow):
 
@@ -59,31 +38,6 @@ class MainWindow(FluentWindow):
 
         self.initNavigation()
         self.initWindow()
-
-        # Automation
-        self.auto_jump_worker = AutoJumpWorker()
-        self.automationInterface.auto_jump_checkbox.stateChanged.connect(self.toggle_auto_jump)
-        self.automationInterface.jump_interval_edit.textChanged.connect(self.update_jump_interval)
-
-        # Hotkeys
-        self.hotkey_listener = HotkeyListener(self)
-        self.hotkey_listener.home_pressed.connect(self.toggle_auto_jump_hotkey)
-        self.hotkey_listener.start()
-
-    def toggle_auto_jump(self, state):
-        if state:
-            interval_text = self.automationInterface.jump_interval_edit.text()
-            self.auto_jump_worker.set_interval(interval_text)
-            self.auto_jump_worker.start()
-        else:
-            self.auto_jump_worker.stop()
-
-    def update_jump_interval(self, text):
-        self.auto_jump_worker.set_interval(text)
-
-    def toggle_auto_jump_hotkey(self):
-        is_checked = self.automationInterface.auto_jump_checkbox.isChecked()
-        self.automationInterface.auto_jump_checkbox.setChecked(not is_checked)
 
     def init_home_layout(self):
         self.vBoxLayout = QVBoxLayout(self.homeInterface)
@@ -123,7 +77,4 @@ class MainWindow(FluentWindow):
             font.setPointSize(int(10 * ratio))
             QApplication.setFont(font)
             
-    def closeEvent(self, event):
-        self.hotkey_listener.stop()
-        super().closeEvent(event)
 

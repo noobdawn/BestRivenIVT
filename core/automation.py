@@ -1,6 +1,7 @@
 import time
 import threading
 from pynput.keyboard import Controller, Key
+from pygetwindow import getActiveWindow
 
 from PyQt5.QtCore import QObject
 
@@ -14,12 +15,18 @@ class AutoJumpWorker(QObject):
         self.running = False
         self.thread = None
         self.keyboard = Controller()
+        self.check_only_in_game = True
+
+    def _is_game_window_active(self):
+        active_window = getActiveWindow()
+        return active_window and active_window.title == '驱入虚空'
 
     def _run(self):
         while self.running:
-            self.keyboard.press(Key.space)
-            time.sleep(0.05) # Keep the press for a short duration
-            self.keyboard.release(Key.space)
+            if self._is_game_window_active() or not self.check_only_in_game:
+                self.keyboard.press(Key.space)
+                time.sleep(0.05) # Keep the press for a short duration
+                self.keyboard.release(Key.space)
             # Adjust for the press duration
             sleep_time = self.interval - 0.05
             if sleep_time > 0:
@@ -52,18 +59,28 @@ class AutoSprintWorker(QObject):
     """
     A worker that simulates Ctrl key presses.
     """
-    def __init__(self):
+    def __init__(self, interval=0.1):
         super().__init__()
+        self.interval = interval
         self.running = False
         self.thread = None
         self.keyboard = Controller()
+        self.check_only_in_game = True
 
+    def _is_game_window_active(self):
+        active_window = getActiveWindow()
+        return active_window and active_window.title == '驱入虚空'
+    
     def _run(self):
         while self.running:
-            self.keyboard.press(Key.ctrl)
-            time.sleep(0.05)
-            self.keyboard.release(Key.ctrl)
-            time.sleep(0.05) # A short pause between presses
+            if self._is_game_window_active() or not self.check_only_in_game:
+                self.keyboard.press(Key.ctrl)
+                time.sleep(0.05) # Keep the press for a short duration
+                self.keyboard.release(Key.ctrl)
+            # Adjust for the press duration
+            sleep_time = self.interval - 0.05
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
     def start(self):
         if not self.running:
@@ -75,4 +92,15 @@ class AutoSprintWorker(QObject):
     def stop(self):
         if self.running:
             self.running = False
+            if self.thread and self.thread.is_alive():
+                # Don't join, as it might block the GUI thread if sleep is long
+                pass
             self.thread = None
+
+    def set_interval(self, interval):
+        try:
+            new_interval = float(interval)
+            if new_interval >= 0.1: # Set a minimum interval
+                self.interval = new_interval
+        except (ValueError, TypeError):
+            pass # Keep the old interval if the new one is invalid
