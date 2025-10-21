@@ -35,8 +35,7 @@ class PropertyEditor(QWidget):
 
     def _init_property_types(self):
         for prop_type in AvailableRivenProperties:
-            if prop_type.name != '_Max':
-                self.property_type_combo.addItem(str(prop_type), userData=prop_type)
+            self.property_type_combo.addItem(str(prop_type), userData=prop_type)
 
 class RivenPage(QFrame):
     def __init__(self, context, parent=None):

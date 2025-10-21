@@ -92,9 +92,14 @@ class PropertyType(Enum):
 	PenetrationValue = 21
 	# 武器伤害
 	AllDamage = 22
-	# 最大枚举
-	_Max = 23
-	
+	# 空中暴击率
+	CriticalChanceInAir = 100
+	# 空中元素伤害
+	ColdInAir = 101
+	ElectricInAir = 102
+	FireInAir = 103
+	PoisonInAir = 104
+
 	def isBaseElementDamage(self):
 		'''判断是否是基础元素伤害'''
 		# 基础元素伤害是指冰冻、赛能、热波、创生
@@ -140,7 +145,12 @@ PropertyTypeToString = {
 	PropertyType.ReloadTime: "装填时间",
 	PropertyType.PenetrationRate: "穿甲率",
 	PropertyType.PenetrationValue: "穿甲值",
-	PropertyType.AllDamage: "武器伤害"
+	PropertyType.AllDamage: "武器伤害",
+	PropertyType.CriticalChanceInAir: "在空中时，暴击率",
+	PropertyType.ColdInAir: "在空中时，冰冻伤害",
+	PropertyType.ElectricInAir: "在空中时，赛能伤害",
+	PropertyType.FireInAir: "在空中时，热波伤害",
+	PropertyType.PoisonInAir: "在空中时，创生伤害"
 }
 
 @unique

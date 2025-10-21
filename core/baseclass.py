@@ -127,14 +127,15 @@ class Property:
 				return f"{self.propertyType}: 0"
 
 class PropertySnapshot:
-	def __init__(self, properties):
+	def __init__(self, properties, update_now=True):
 		self.datas = {}
 		for propertyType in PropertyType:
 			self.datas[propertyType] = Property(propertyType)
 		for property in properties:
 			self.datas[property.propertyType].add(property)
 		self.damageSnapshot = None
-		self.update([])
+		if update_now:
+			self.update([])
 
 	def __deepcopy__(self, memo):
 		new_snapshot = PropertySnapshot([])
@@ -201,26 +202,36 @@ class PropertySnapshot:
 	def MakeDamage(self) -> DamageCollection:
 		return self.damageSnapshot
 
-	def update(self, propertiesArray):
+	def update(self, propertiesArray : list[Property]):
 		baseDamage = self.getTotalDamage()
 		# 先计算非元素伤害的属性
-		elementDamageArray = []
+		variableElementDamageArray = []
+		constantElementDamageArray = []
 		for property in propertiesArray:
 			if property.propertyType.isElementDamage():
-				elementDamageArray.append(property)
+				if property.propertyType.isBaseElementDamage():
+					variableElementDamageArray.append(property)
+				else:
+					constantElementDamageArray.append(property)
 			else:
 				self.datas[property.propertyType].add(property)
-		# 将元素伤害百分比转化为数值
-		for property in elementDamageArray:
+		# 将元素伤害MOD从百分比转化为实际的伤害数值
+		for property in variableElementDamageArray:
 			if property.propertyType.isElementDamage():
 				property.value = property.addon * baseDamage / 100.0
 				property.addon = 0.0
 			else:
 				raise ValueError("Invalid property type for element damage")
-		# 将原先的元素伤害属性添加到elementDamageArray末尾，然后清空快照中的元素伤害属性
+		for property in constantElementDamageArray:
+			if property.propertyType.isElementDamage():
+				property.value = property.addon * baseDamage / 100.0
+				property.addon = 0.0
+			else:
+				raise ValueError("Invalid property type for element damage")
+		# 将枪械本身的元素伤害属性添加到elementDamageArray末尾，然后清空快照中的元素伤害属性
 		for propertyType in PropertyType:
 			if propertyType.isElementDamage() and self.datas[propertyType].get() != 0:
-				elementDamageArray.append(copy.deepcopy(self.datas[propertyType]))
+				variableElementDamageArray.append(copy.deepcopy(self.datas[propertyType]))
 				self.datas[propertyType].clear()
 		# 按顺序开始复合元素伤害：
 		# 裂化 = 热波 + 冰冻
@@ -266,19 +277,19 @@ class PropertySnapshot:
 						find, property = FindElementDamage(PropertyType.Radiation)
 			return find, property
 
-		for i in range(len(elementDamageArray)):
-			damageType = elementDamageArray[i].propertyType
+		for i in range(len(variableElementDamageArray)):
+			damageType = variableElementDamageArray[i].propertyType
 			# 先检查是否有同类型的元素伤害已经存在
 			find, property = FindElementDamage(damageType)
 			if find:
 				# 如果有，直接将当前元素伤害加到已有的元素伤害上
-				property.add(elementDamageArray[i])
+				property.add(variableElementDamageArray[i])
 				continue
 			# 如果没有，检查是否有该元素参与的复合元素伤害已经存在
 			find, property = FindElementDamageComposed(damageType)
 			if find:
 				# 如果有，将当前元素伤害加到已有的复合元素伤害上
-				property.add(elementDamageArray[i], ignore_type_check=True)
+				property.add(variableElementDamageArray[i], ignore_type_check=True)
 				continue
 			# 如果没有，检查是否有可复合的元素伤害已经存在
 			if damageType == PropertyType.Fire:
@@ -286,7 +297,7 @@ class PropertySnapshot:
 				find, property = FindElementDamage(PropertyType.Cold)
 				if find:
 					# 如果有冰冻，复合成裂化
-					property.value += elementDamageArray[i].get()
+					property.value += variableElementDamageArray[i].get()
 					property.addon = 0.0
 					property.propertyType = PropertyType.Cracking
 					continue
@@ -294,7 +305,7 @@ class PropertySnapshot:
 					find, property = FindElementDamage(PropertyType.Electric)
 					if find:
 						# 如果有赛能，复合成辐射
-						property.value += elementDamageArray[i].get()
+						property.value += variableElementDamageArray[i].get()
 						property.addon = 0.0
 						property.propertyType = PropertyType.Radiation
 						continue
@@ -302,7 +313,7 @@ class PropertySnapshot:
 						find, property = FindElementDamage(PropertyType.Poison)
 						if find:
 							# 如果有创生，复合成毒气
-							property.value += elementDamageArray[i].get()
+							property.value += variableElementDamageArray[i].get()
 							property.addon = 0.0
 							property.propertyType = PropertyType.Gas
 							continue
@@ -311,7 +322,7 @@ class PropertySnapshot:
 				find, property = FindElementDamage(PropertyType.Electric)
 				if find:
 					# 如果有赛能，复合成磁暴
-					property.value += elementDamageArray[i].get()
+					property.value += variableElementDamageArray[i].get()
 					property.addon = 0.0
 					property.propertyType = PropertyType.Magnetic
 					continue
@@ -319,7 +330,7 @@ class PropertySnapshot:
 					find, property = FindElementDamage(PropertyType.Poison)
 					if find:
 						# 如果有创生，复合成病毒
-						property.value += elementDamageArray[i].get()
+						property.value += variableElementDamageArray[i].get()
 						property.addon = 0.0
 						property.propertyType = PropertyType.Virus
 						continue
@@ -327,7 +338,7 @@ class PropertySnapshot:
 						find, property = FindElementDamage(PropertyType.Fire)
 						if find:
 							# 如果有热波，复合成裂化
-							property.value += elementDamageArray[i].get()
+							property.value += variableElementDamageArray[i].get()
 							property.addon = 0.0
 							property.propertyType = PropertyType.Cracking
 							continue
@@ -336,7 +347,7 @@ class PropertySnapshot:
 				find, property = FindElementDamage(PropertyType.Fire)
 				if find:
 					# 如果有热波，复合成以太
-					property.value += elementDamageArray[i].get()
+					property.value += variableElementDamageArray[i].get()
 					property.addon = 0.0
 					property.propertyType = PropertyType.Ether
 					continue
@@ -344,7 +355,7 @@ class PropertySnapshot:
 					find, property = FindElementDamage(PropertyType.Cold)
 					if find:
 						# 如果有冰冻，复合成磁暴
-						property.value += elementDamageArray[i].get()
+						property.value += variableElementDamageArray[i].get()
 						property.addon = 0.0
 						property.propertyType = PropertyType.Magnetic
 						continue
@@ -352,7 +363,7 @@ class PropertySnapshot:
 						find, property = FindElementDamage(PropertyType.Poison)
 						if find:
 							# 如果有创生，复合成辐射
-							property.value += elementDamageArray[i].get()
+							property.value += variableElementDamageArray[i].get()
 							property.addon = 0.0
 							property.propertyType = PropertyType.Radiation
 							continue
@@ -361,7 +372,7 @@ class PropertySnapshot:
 				find, property = FindElementDamage(PropertyType.Electric)
 				if find:
 					# 如果有赛能，复合成辐射
-					property.value += elementDamageArray[i].get()
+					property.value += variableElementDamageArray[i].get()
 					property.addon = 0.0
 					property.propertyType = PropertyType.Radiation
 					continue
@@ -369,7 +380,7 @@ class PropertySnapshot:
 					find, property = FindElementDamage(PropertyType.Fire)
 					if find:
 						# 如果有热波，复合成毒气
-						property.value += elementDamageArray[i].get()
+						property.value += variableElementDamageArray[i].get()
 						property.addon = 0.0
 						property.propertyType = PropertyType.Gas
 						continue
@@ -377,12 +388,15 @@ class PropertySnapshot:
 						find, property = FindElementDamage(PropertyType.Cold)
 						if find:
 							# 如果有冰冻，复合成病毒
-							property.value += elementDamageArray[i].get()
+							property.value += variableElementDamageArray[i].get()
 							property.addon = 0.0
 							property.propertyType = PropertyType.Virus
 							continue
 			# 如果没有可复合的元素伤害，直接添加到FinalDamageArray
-			FinalDamageArray.append(copy.deepcopy(elementDamageArray[i]))
+			FinalDamageArray.append(copy.deepcopy(variableElementDamageArray[i]))
+
+		for i in range(len(constantElementDamageArray)):
+			FinalDamageArray.append(copy.deepcopy(constantElementDamageArray[i]))
 		
 		# 别忘了将那些addon还有值的属性也都计算一次，比如……动能
 		for propertyType in PropertyType:

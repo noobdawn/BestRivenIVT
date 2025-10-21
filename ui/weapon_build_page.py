@@ -99,10 +99,7 @@ class AvailableCardsCard(CardWidget):
 
     def _init_property_type_filters(self):
         """ Create and add property type filter checkboxes """
-        for prop_type in PropertyType:
-            if prop_type.name == '_Max':
-                continue
-            
+        for prop_type in PropertyType:            
             checkbox = CheckBox(str(prop_type), self)
             checkbox.stateChanged.connect(self._on_filter_changed)
             self.propertyTypeFilterFlowLayout.addWidget(checkbox)

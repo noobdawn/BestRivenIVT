@@ -58,10 +58,26 @@
         "cardSet": null,
         "mainWeapon": "Rifle",
         "subWeapon": "All",
-        "cost": 0,
+        "cost": 16,
         "slot": 5,
         "isPrime": true,
         "isRiven": false
+    },
+    {
+        "name" : "速效定装",
+        "properties" : [
+            {
+                "type" : "ReloadTime",
+                "value" : -30
+            }
+        ],
+        "cardSet" : null,
+        "mainWeapon" : "Rifle",
+        "subWeapon" : "All",
+        "cost" : 9,
+        "slot" : 5,
+        "isPrime" : false,
+        "isRiven" : false
     },
     {
         "name": "多重点射",
@@ -78,6 +94,86 @@
         "slot": 0,
         "isPrime": false,
         "isRiven": false
+    },
+    {
+        "name" : "破阵行空",
+        "properties" : [
+            {
+                "type" : "CriticalChanceInAir",
+                "value" : 175
+            }
+        ],
+        "cardSet" : null,
+        "mainWeapon" : "Rifle",
+        "subWeapon" : "All",
+        "cost" : 16,
+        "slot" : 0,
+        "isPrime" : false,
+        "isRiven" : false
+    },
+    {
+        "name" : "寒流行空",
+        "properties" : [
+            {
+                "type" : "ColdInAir",
+                "value" : 100
+            }
+        ],
+        "cardSet" : null,
+        "mainWeapon" : "Rifle",
+        "subWeapon" : "All",
+        "cost" : 16,
+        "slot" : 3,
+        "isPrime" : false,
+        "isRiven" : false
+    },
+    {
+        "name" : "熔岩行空",
+        "properties" : [
+            {
+                "type" : "FireInAir",
+                "value" : 100
+            }
+        ],
+        "cardSet" : null,
+        "mainWeapon" : "Rifle",
+        "subWeapon" : "All",
+        "cost" : 16,
+        "slot" : 3,
+        "isPrime" : false,
+        "isRiven" : false
+    },
+    {
+        "name" : "电涌行空",
+        "properties" : [
+            {
+                "type" : "ElectricInAir",
+                "value" : 100
+            }
+        ],
+        "cardSet" : null,
+        "mainWeapon" : "Rifle",
+        "subWeapon" : "All",
+        "cost" : 16,
+        "slot" : 3,
+        "isPrime" : false,
+        "isRiven" : false
+    },
+    {
+        "name" : "活化行空",
+        "properties" : [
+            {
+                "type" : "PoisonInAir",
+                "value" : 100
+            }
+        ],
+        "cardSet" : null,
+        "mainWeapon" : "Rifle",
+        "subWeapon" : "All",
+        "cost" : 16,
+        "slot" : 3,
+        "isPrime" : false,
+        "isRiven" : false
     },
     {
         "name": "增压枪膛",
@@ -110,6 +206,22 @@
         "slot": 0,
         "isPrime": false,
         "isRiven": false
+    },
+    {
+        "name" : "准确命中",
+        "properties" : [
+            {
+                "type" : "Headshot",
+                "value" : 100
+            }
+        ],
+        "cardSet" : null,
+        "mainWeapon" : "Rifle",
+        "subWeapon" : "All",
+        "cost" : 14,
+        "slot" : 5,
+        "isPrime" : false,
+        "isRiven" : false
     },
     {
         "name": "快速回膛",
@@ -250,7 +362,7 @@
         "cardSet": null,
         "mainWeapon": "Rifle",
         "subWeapon": "All",
-        "cost": 0,
+        "cost": 15,
         "slot": 3,
         "isPrime": true,
         "isRiven": false
@@ -302,7 +414,7 @@
         "cardSet": null,
         "mainWeapon": "Rifle",
         "subWeapon": "All",
-        "cost": 0,
+        "cost": 9,
         "slot": 2,
         "isPrime": false,
         "isRiven": false
@@ -322,7 +434,7 @@
         "cardSet": null,
         "mainWeapon": "Rifle",
         "subWeapon": "All",
-        "cost": 0,
+        "cost": 9,
         "slot": 0,
         "isPrime": false,
         "isRiven": false
@@ -342,7 +454,7 @@
         "cardSet": null,
         "mainWeapon": "Rifle",
         "subWeapon": "All",
-        "cost": 0,
+        "cost": 9,
         "slot": 0,
         "isPrime": false,
         "isRiven": false
@@ -362,7 +474,7 @@
         "cardSet": null,
         "mainWeapon": "Rifle",
         "subWeapon": "All",
-        "cost": 0,
+        "cost": 9,
         "slot": 0,
         "isPrime": false,
         "isRiven": false
